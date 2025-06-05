@@ -25,6 +25,10 @@ const CategoriesPage = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null)
   const [selectedCategoryName, setSelectedCategoryName] = useState(null)
 
+  // Subcategory-related state
+  const [subcategories, setSubcategories] = useState([])
+  const [selectedSubcategoryId, setSelectedSubcategoryId] = useState("all")
+
   // Pagination state for categories
   const [catPage, setCatPage] = useState(1)
   const totalCatPages = Math.ceil(categories.length / CATEGORIES_PER_PAGE)
@@ -49,21 +53,42 @@ const CategoriesPage = () => {
     fetchCategories()
   }, [])
 
-  // Fetch all products (for filtering by category)
+  // Fetch subcategories for selected category
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true)
-        const response = await axios.get("http://localhost:3000/api/products")
-        setProducts(response.data)
-        setLoading(false)
-      } catch (err) {
-        setError("Failed to fetch products.")
-        setLoading(false)
-      }
+    if (selectedCategoryId) {
+      axios
+        .get(`http://localhost:3000/api/subcategories/by-category/${selectedCategoryId}`)
+        .then((res) => setSubcategories(res.data))
+        .catch(() => setSubcategories([]))
+      setSelectedSubcategoryId("all")
+    } else {
+      setSubcategories([])
+      setSelectedSubcategoryId("all")
     }
-    fetchProducts()
-  }, [])
+  }, [selectedCategoryId])
+
+  // Fetch products for selected category and subcategory
+  useEffect(() => {
+    if (selectedCategoryId) {
+      setLoading(true)
+      let url = `http://localhost:3000/api/products/category/${selectedCategoryId}`
+      if (selectedSubcategoryId && selectedSubcategoryId !== "all") {
+        url += `?subcategoryId=${selectedSubcategoryId}`
+      }
+      axios
+        .get(url)
+        .then((res) => {
+          setProducts(res.data)
+          setLoading(false)
+        })
+        .catch(() => {
+          setProducts([])
+          setLoading(false)
+        })
+    } else {
+      setProducts([])
+    }
+  }, [selectedCategoryId, selectedSubcategoryId])
 
   // Sync selectedCategoryId with URL changes (for deep-linking)
   useEffect(() => {
@@ -82,13 +107,6 @@ const CategoriesPage = () => {
     }
     // eslint-disable-next-line
   }, [initialCategory, categories])
-
-  // Filter products by selected categoryId
-  const filteredProducts = selectedCategoryId
-    ? products.filter(
-        (p) => p.category && p.category.id === selectedCategoryId
-      )
-    : []
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -169,14 +187,10 @@ const CategoriesPage = () => {
                     }}
                   >
                     <div className="text-4xl mb-3">{
-                      // Optionally, you can add icons if you store them in your DB or map by name
                       category.icon || "🗂️"
                     }</div>
                     <h4 className="font-semibold mb-1">{category.name}</h4>
-                    {/* If you want to display product count, you can calculate it: */}
-                    <p className="text-sm text-gray-600">
-                      {products.filter(p => p.category && p.category.id === category.id).length} items
-                    </p>
+                   
                   </button>
                 ))}
               </div>
@@ -211,6 +225,9 @@ const CategoriesPage = () => {
                     onClick={() => {
                       setSelectedCategoryId(null)
                       setSelectedCategoryName(null)
+                      setProducts([])
+                      setSubcategories([])
+                      setSelectedSubcategoryId("all")
                     }}
                   >
                     Clear Selection
@@ -221,6 +238,27 @@ const CategoriesPage = () => {
           )}
         </div>
       </section>
+
+      {/* Subcategory Dropdown */}
+      {selectedCategoryId && subcategories.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <label className="block mb-2 text-lg font-semibold text-gray-700">
+            Filter by Subcategory:
+          </label>
+          <select
+            className="px-4 py-2 border rounded-lg"
+            value={selectedSubcategoryId}
+            onChange={(e) => setSelectedSubcategoryId(e.target.value)}
+          >
+            <option value="all">All</option>
+            {subcategories.map((sub) => (
+              <option key={sub.id} value={sub.id}>
+                {sub.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Selected Category Products */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
@@ -233,13 +271,13 @@ const CategoriesPage = () => {
               <div className="text-center text-gray-500 py-24 text-xl">Loading products...</div>
             ) : error ? (
               <div className="text-center text-red-500 py-24 text-xl">{error}</div>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <div className="text-center text-gray-500 py-24 text-xl">
-                No products found in this category.
+                No products found in this {selectedSubcategoryId !== "all" ? "subcategory" : "category"}.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {filteredProducts.map((product) => (
+                {products.map((product) => (
                   <div
                     key={product.id}
                     className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow flex flex-col"
@@ -259,7 +297,9 @@ const CategoriesPage = () => {
                     </div>
                     <div className="flex-1 flex flex-col p-5">
                       <h4 className="font-semibold text-lg text-gray-900 mb-1 truncate">{product.name}</h4>
-                      <p className="text-sm text-gray-500 mb-4 truncate">{selectedCategoryName}</p>
+                      <p className="text-sm text-gray-500 mb-4 truncate">
+                        {product.subcategory ? product.subcategory.name : selectedCategoryName}
+                      </p>
                       <div className="mt-auto flex items-center justify-between">
                         <span className="text-xl font-bold text-blue-600">
                           ${product.price}

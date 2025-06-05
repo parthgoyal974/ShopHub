@@ -4,9 +4,11 @@ import authRouter from './routes/authRoutes.js';
 import sequelize from './lib/db.js'; 
 import dotenv from 'dotenv';
 import productRouter from './routes/productRoutes.js';
-import categoryRouter from './routes/categoryRoutes.js'; // Import category routes
+import categoryRouter from './routes/categoryRoutes.js'; 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import subcategoryRouter from './routes/subcategoryRoutes.js';
+
 
 dotenv.config();
 
@@ -30,8 +32,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 // Routes
 app.use('/auth', authRouter);
 app.use('/api/products', productRouter);
-app.use('/api/categories', categoryRouter); // Mount category routes
-
+app.use('/api/categories', categoryRouter); 
+app.use('/api/subcategories', subcategoryRouter);
 app.get('/', (req, res) => {
     res.send("Server is running");
 });

@@ -5,7 +5,8 @@ import {
   createProduct,
   getAllProducts,
   getProductById,
-  getProductsByCategoryId,
+  getProductsByCategoryAndSubcategory,
+  getProductsBySubcategoryId,
   updateProductById,
   getBestProductsPaginated
 } from '../repository/productRepository.js';
@@ -22,7 +23,7 @@ router.post('/', upload.single('image'), async (req, res) => {
   }
 });
 
-// Get all products (with category info)
+// Get all products (with category and subcategory info)
 router.get('/', async (req, res) => {
   try {
     const products = await getAllProducts();
@@ -31,10 +32,6 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
-
-
-
 
 // Get best products (paginated, sorted by rating DESC)
 router.get('/best', async (req, res) => {
@@ -50,21 +47,32 @@ router.get('/best', async (req, res) => {
       currentPage: page
     });
   } catch (err) {
-    console.log(err)
     res.status(500).json({ message: err.message });
   }
 });
 
-// Get products by categoryId
+// Get products by categoryId (optionally by subcategoryId)
 router.get('/category/:categoryId', async (req, res) => {
   try {
-    const products = await getProductsByCategoryId(req.params.categoryId);
+    const { categoryId } = req.params;
+    const { subcategoryId } = req.query;
+    const products = await getProductsByCategoryAndSubcategory(categoryId, subcategoryId);
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
+// Get products by subcategoryId only
+router.get('/subcategory/:subcategoryId', async (req, res) => {
+  try {
+    const { subcategoryId } = req.params;
+    const products = await getProductsBySubcategoryId(subcategoryId);
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // Get a single product by id
 router.get('/:id', async (req, res) => {
@@ -91,7 +99,5 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     res.status(statusCode).json({ message: err.message });
   }
 });
-
-
 
 export default router;
