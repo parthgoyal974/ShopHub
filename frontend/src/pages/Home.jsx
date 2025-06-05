@@ -8,20 +8,11 @@ import Logo from '../assets/logo.jpg';
 const PRODUCTS_PER_PAGE = 4;
 const CATEGORIES_PER_PAGE = 6;
 
-const categories = [
-  { name: "Electronics", icon: "📱", count: "2,500+ items" },
-  { name: "Fashion", icon: "👕", count: "1,800+ items" },
-  { name: "Home & Garden", icon: "🏠", count: "3,200+ items" },
-  { name: "Sports", icon: "⚽", count: "1,200+ items" },
-  { name: "Books", icon: "📚", count: "5,000+ items" },
-  { name: "Beauty", icon: "💄", count: "900+ items" },
-  { name: "Furniture", icon: "🛋️", count: "1,100+ items" }
-];
-
 const Home = () => {
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
   const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
 
   // Best Products Pagination State
   const [bestProducts, setBestProducts] = useState([]);
@@ -67,6 +58,19 @@ const Home = () => {
     navigate("/")
   }
 
+  // Fetch all categories from backend
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/api/categories")
+        setCategories(response.data)
+      } catch (err) {
+        setCategories([])
+      }
+    }
+    fetchCategories()
+  }, [])
+
   // Fetch all products for "Products by Category" (not paginated)
   useEffect(() => {
     const fetchProducts = async () => {
@@ -74,7 +78,7 @@ const Home = () => {
         const response = await axios.get("http://localhost:3000/api/products")
         setProducts(response.data)
       } catch (err) {
-        console.error("Failed to fetch products:", err)
+        setProducts([])
       }
     }
     fetchProducts()
@@ -110,12 +114,14 @@ const Home = () => {
     if (bestProductsPage < bestProductsTotalPages) setBestProductsPage(bestProductsPage + 1);
   };
 
-  // Group products by category for Products by Category section
+  // Group products by categoryId for Products by Category section
   const productsByCategory = products.reduce((groups, product) => {
-    if (!groups[product.category]) groups[product.category] = []
-    groups[product.category].push(product)
-    return groups
-  }, {})
+    const catId = product.category ? product.category.id : null;
+    if (!catId) return groups;
+    if (!groups[catId]) groups[catId] = [];
+    groups[catId].push(product);
+    return groups;
+  }, {});
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -202,7 +208,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Categories Section (paginated) */}
+      {/* Categories Section (paginated, dynamic) */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -215,12 +221,19 @@ const Home = () => {
             {paginatedCategories.map((category, index) => (
               <Link
                 to={`/categories?category=${encodeURIComponent(category.name)}`}
-                key={index}
+                key={category.id}
                 className="text-center p-6 bg-gray-50 rounded-lg hover:shadow-md transition-shadow cursor-pointer block"
               >
-                <div className="text-4xl mb-3">{category.icon}</div>
+                <div className="text-4xl mb-3">{
+                  // Optionally use an icon property if you have it in your DB, else fallback
+                  category.icon || "🗂️"
+                }</div>
                 <h4 className="font-semibold text-gray-900 mb-1">{category.name}</h4>
-                <p className="text-sm text-gray-600">{category.count}</p>
+                <p className="text-sm text-gray-600">
+                  {
+                    products.filter(p => p.category && p.category.id === category.id).length
+                  } items
+                </p>
               </Link>
             ))}
           </div>
@@ -282,7 +295,9 @@ const Home = () => {
                   </div>
                   <div className="flex-1 flex flex-col p-5">
                     <h4 className="font-semibold text-lg text-gray-900 mb-1 truncate">{product.name}</h4>
-                    <p className="text-sm text-gray-500 mb-4 truncate">{product.category}</p>
+                    <p className="text-sm text-gray-500 mb-4 truncate">
+                      {product.category ? product.category.name : ""}
+                    </p>
                     <div className="mt-auto flex items-center justify-between">
                       <span className="text-xl font-bold text-blue-600">
                         ${product.price}

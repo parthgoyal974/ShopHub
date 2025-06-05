@@ -3,24 +3,17 @@ import cors from 'cors';
 import authRouter from './routes/authRoutes.js';
 import sequelize from './lib/db.js'; 
 import dotenv from 'dotenv';
-
 import productRouter from './routes/productRoutes.js';
+import categoryRouter from './routes/categoryRoutes.js'; // Import category routes
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 
 dotenv.config();
 
 const app = express();
 
-
-
-
-
-
 // Middleware
 app.use(cors());
-
 app.use(express.json());
 
 // Create __dirname equivalent
@@ -34,34 +27,23 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   }
 }));
 
-
-
-
-
-
-
-
 // Routes
 app.use('/auth', authRouter);
-
-app.use('/api', productRouter);
-
+app.use('/api/products', productRouter);
+app.use('/api/categories', categoryRouter); // Mount category routes
 
 app.get('/', (req, res) => {
     res.send("Server is running");
 });
 
-
 const PORT = process.env.PORT;
-
 
 (async () => {
   try {
-
     await sequelize.authenticate();
     console.log("Sequelize DB CONNECTED");
 
-    await sequelize.sync();
+    await sequelize.sync(); 
 
     app.listen(PORT, () => {
       console.log(`Server Running on Port ${PORT}`);

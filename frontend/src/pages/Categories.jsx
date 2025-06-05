@@ -4,17 +4,6 @@ import axios from "axios"
 import { useEffect, useState } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 
-// All categories with icons and counts (update counts as needed)
-const ALL_CATEGORIES = [
-  { name: "Electronics", icon: "📱", count: "2,500+ items" },
-  { name: "Fashion", icon: "👕", count: "1,800+ items" },
-  { name: "Home & Garden", icon: "🏠", count: "3,200+ items" },
-  { name: "Sports", icon: "⚽", count: "1,200+ items" },
-  { name: "Books", icon: "📚", count: "5,000+ items" },
-  { name: "Beauty", icon: "💄", count: "900+ items" },
-  { name: "Furniture", icon: "🛋️", count: "1,100+ items" }
-]
-
 const CATEGORIES_PER_PAGE = 6
 
 // Helper to read query string
@@ -28,34 +17,39 @@ const CategoriesPage = () => {
   const query = useQuery()
   const initialCategory = query.get("category")
 
-  // Always store and compare category in lower case for case-insensitivity
-  const initialCategoryLower = initialCategory ? initialCategory.toLowerCase() : null
-
+  // State
+  const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState(initialCategoryLower)
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null)
+  const [selectedCategoryName, setSelectedCategoryName] = useState(null)
 
   // Pagination state for categories
-  const [catPage, setCatPage] = useState(() => {
-    if (initialCategoryLower) {
-      // Find the index of the category in a case-insensitive way
-      const idx = ALL_CATEGORIES.findIndex(
-        cat => cat.name.toLowerCase() === initialCategoryLower
-      )
-      return idx >= 0 ? Math.floor(idx / CATEGORIES_PER_PAGE) + 1 : 1
-    }
-    return 1
-  })
-  const totalCatPages = Math.ceil(ALL_CATEGORIES.length / CATEGORIES_PER_PAGE)
-
-  // Paginated categories
-  const paginatedCategories = ALL_CATEGORIES.slice(
+  const [catPage, setCatPage] = useState(1)
+  const totalCatPages = Math.ceil(categories.length / CATEGORIES_PER_PAGE)
+  const paginatedCategories = categories.slice(
     (catPage - 1) * CATEGORIES_PER_PAGE,
     catPage * CATEGORIES_PER_PAGE
   )
 
-  // Fetch products
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true)
+        const response = await axios.get("http://localhost:3000/api/categories")
+        setCategories(response.data)
+        setLoading(false)
+      } catch (err) {
+        setError("Failed to fetch categories.")
+        setLoading(false)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  // Fetch all products (for filtering by category)
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -71,23 +65,28 @@ const CategoriesPage = () => {
     fetchProducts()
   }, [])
 
-  // Sync selectedCategory with URL changes (for deep-linking)
+  // Sync selectedCategoryId with URL changes (for deep-linking)
   useEffect(() => {
-    setSelectedCategory(initialCategoryLower)
-    if (initialCategoryLower) {
-      const idx = ALL_CATEGORIES.findIndex(
-        cat => cat.name.toLowerCase() === initialCategoryLower
+    if (initialCategory && categories.length > 0) {
+      // Find category by name, case-insensitive
+      const match = categories.find(
+        cat => cat.name.toLowerCase() === initialCategory.toLowerCase()
       )
-      if (idx >= 0) setCatPage(Math.floor(idx / CATEGORIES_PER_PAGE) + 1)
+      if (match) {
+        setSelectedCategoryId(match.id)
+        setSelectedCategoryName(match.name)
+        // Jump to the page containing this category
+        const idx = categories.findIndex(cat => cat.id === match.id)
+        setCatPage(Math.floor(idx / CATEGORIES_PER_PAGE) + 1)
+      }
     }
-  }, [location.search, initialCategoryLower])
+    // eslint-disable-next-line
+  }, [initialCategory, categories])
 
-  // Filter products by selected category (case-insensitive)
-  const filteredProducts = selectedCategory
+  // Filter products by selected categoryId
+  const filteredProducts = selectedCategoryId
     ? products.filter(
-        (p) =>
-          p.category &&
-          p.category.toLowerCase() === selectedCategory
+        (p) => p.category && p.category.id === selectedCategoryId
       )
     : []
 
@@ -147,70 +146,88 @@ const CategoriesPage = () => {
               Click a category to see its products
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {paginatedCategories.map((category) => (
-              <button
-                key={category.name}
-                className={`text-center p-6 rounded-lg transition-shadow cursor-pointer border-2 w-full h-full ${
-                  selectedCategory &&
-                  category.name.toLowerCase() === selectedCategory
-                    ? "bg-blue-600 text-white border-blue-600 shadow-lg"
-                    : "bg-gray-50 text-gray-900 border-transparent hover:shadow-md"
-                }`}
-                onClick={() => setSelectedCategory(category.name.toLowerCase())}
-              >
-                <div className="text-4xl mb-3">{category.icon}</div>
-                <h4 className="font-semibold mb-1">{category.name}</h4>
-                <p className="text-sm text-gray-600">{category.count}</p>
-              </button>
-            ))}
-          </div>
-          {/* Pagination Controls */}
-          <div className="flex justify-center mt-8 space-x-2">
-            <button
-              onClick={() => setCatPage((p) => Math.max(1, p - 1))}
-              disabled={catPage === 1}
-              className={`px-4 py-2 rounded-lg border ${
-                catPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
-              }`}
-            >
-              Previous
-            </button>
-            <span className="px-4 py-2 text-gray-700">
-              Page {catPage} of {totalCatPages}
-            </span>
-            <button
-              onClick={() => setCatPage((p) => Math.min(totalCatPages, p + 1))}
-              disabled={catPage === totalCatPages}
-              className={`px-4 py-2 rounded-lg border ${
-                catPage === totalCatPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
-              }`}
-            >
-              Next
-            </button>
-          </div>
-          {selectedCategory && (
-            <div className="flex justify-center mt-8">
-              <button
-                className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-                onClick={() => setSelectedCategory(null)}
-              >
-                Clear Selection
-              </button>
-            </div>
+          {loading ? (
+            <div className="text-center text-gray-500 py-12 text-xl">Loading categories...</div>
+          ) : error ? (
+            <div className="text-center text-red-500 py-12 text-xl">{error}</div>
+          ) : categories.length === 0 ? (
+            <div className="text-center text-gray-500 py-12 text-xl">No categories found.</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                {paginatedCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    className={`text-center p-6 rounded-lg transition-shadow cursor-pointer border-2 w-full h-full ${
+                      selectedCategoryId === category.id
+                        ? "bg-blue-600 text-white border-blue-600 shadow-lg"
+                        : "bg-gray-50 text-gray-900 border-transparent hover:shadow-md"
+                    }`}
+                    onClick={() => {
+                      setSelectedCategoryId(category.id)
+                      setSelectedCategoryName(category.name)
+                    }}
+                  >
+                    <div className="text-4xl mb-3">{
+                      // Optionally, you can add icons if you store them in your DB or map by name
+                      category.icon || "🗂️"
+                    }</div>
+                    <h4 className="font-semibold mb-1">{category.name}</h4>
+                    {/* If you want to display product count, you can calculate it: */}
+                    <p className="text-sm text-gray-600">
+                      {products.filter(p => p.category && p.category.id === category.id).length} items
+                    </p>
+                  </button>
+                ))}
+              </div>
+              {/* Pagination Controls */}
+              <div className="flex justify-center mt-8 space-x-2">
+                <button
+                  onClick={() => setCatPage((p) => Math.max(1, p - 1))}
+                  disabled={catPage === 1}
+                  className={`px-4 py-2 rounded-lg border ${
+                    catPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="px-4 py-2 text-gray-700">
+                  Page {catPage} of {totalCatPages}
+                </span>
+                <button
+                  onClick={() => setCatPage((p) => Math.min(totalCatPages, p + 1))}
+                  disabled={catPage === totalCatPages}
+                  className={`px-4 py-2 rounded-lg border ${
+                    catPage === totalCatPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+              {selectedCategoryId && (
+                <div className="flex justify-center mt-8">
+                  <button
+                    className="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    onClick={() => {
+                      setSelectedCategoryId(null)
+                      setSelectedCategoryName(null)
+                    }}
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
 
       {/* Selected Category Products */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        {selectedCategory && (
+        {selectedCategoryId && (
           <>
             <h3 className="text-2xl font-bold text-gray-900 mb-6 border-l-4 border-blue-600 pl-3 mt-10">
-              {
-                // Display the category name in original case for UI
-                ALL_CATEGORIES.find(c => c.name.toLowerCase() === selectedCategory)?.name || selectedCategory
-              } Products
+              {selectedCategoryName} Products
             </h3>
             {loading ? (
               <div className="text-center text-gray-500 py-24 text-xl">Loading products...</div>
@@ -242,7 +259,7 @@ const CategoriesPage = () => {
                     </div>
                     <div className="flex-1 flex flex-col p-5">
                       <h4 className="font-semibold text-lg text-gray-900 mb-1 truncate">{product.name}</h4>
-                      <p className="text-sm text-gray-500 mb-4 truncate">{product.category}</p>
+                      <p className="text-sm text-gray-500 mb-4 truncate">{selectedCategoryName}</p>
                       <div className="mt-auto flex items-center justify-between">
                         <span className="text-xl font-bold text-blue-600">
                           ${product.price}
