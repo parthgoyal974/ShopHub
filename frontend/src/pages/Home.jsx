@@ -5,10 +5,8 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import Logo from '../assets/logo.jpg';
 
-const PRODUCTS_PER_PAGE = 4; // Products per page in Best Rated Products
+const PRODUCTS_PER_PAGE = 4;
 const CATEGORIES_PER_PAGE = 6;
-
-
 
 const categories = [
   { name: "Electronics", icon: "📱", count: "2,500+ items" },
@@ -24,11 +22,20 @@ const Home = () => {
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
   const [products, setProducts] = useState([])
-  const [topProducts, setTopProducts] = useState([])
 
-  // Pagination state for Best Products
-  const [currentPage, setCurrentPage] = useState(1)
-  const totalPages = Math.ceil(topProducts.length / PRODUCTS_PER_PAGE)
+  // Best Products Pagination State
+  const [bestProducts, setBestProducts] = useState([]);
+  const [bestProductsPage, setBestProductsPage] = useState(1);
+  const [bestProductsTotalPages, setBestProductsTotalPages] = useState(1);
+  const [loadingBest, setLoadingBest] = useState(false);
+
+  // Categories Pagination State
+  const [catPage, setCatPage] = useState(1);
+  const totalCatPages = Math.ceil(categories.length / CATEGORIES_PER_PAGE);
+  const paginatedCategories = categories.slice(
+    (catPage - 1) * CATEGORIES_PER_PAGE,
+    catPage * CATEGORIES_PER_PAGE
+  );
 
   // Fetch user info
   const fetchUser = async () => {
@@ -60,18 +67,12 @@ const Home = () => {
     navigate("/")
   }
 
-  // Fetch products and compute top products
+  // Fetch all products for "Products by Category" (not paginated)
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get("http://localhost:3000/api/products")
         setProducts(response.data)
-        // Top 10 highest rated products
-        const sortedProducts = [...response.data]
-          .sort((a, b) => b.rating - a.rating)
-          .slice(0, 10)
-        setTopProducts(sortedProducts)
-        setCurrentPage(1) // Reset to first page on new fetch
       } catch (err) {
         console.error("Failed to fetch products:", err)
       }
@@ -79,34 +80,42 @@ const Home = () => {
     fetchProducts()
   }, [])
 
+  // Fetch best products for current page (server-side pagination)
+  const fetchBestProducts = async (page = 1) => {
+    setLoadingBest(true);
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/products/best?page=${page}&limit=${PRODUCTS_PER_PAGE}`
+      );
+      setBestProducts(response.data.products);
+      setBestProductsTotalPages(response.data.totalPages);
+      setBestProductsPage(response.data.currentPage);
+    } catch (err) {
+      setBestProducts([]);
+      setBestProductsTotalPages(1);
+    }
+    setLoadingBest(false);
+  };
 
-  const [catPage, setCatPage] = useState(1);
-  const totalCatPages = Math.ceil(categories.length / CATEGORIES_PER_PAGE);
+  useEffect(() => {
+    fetchBestProducts(bestProductsPage);
+    // eslint-disable-next-line
+  }, [bestProductsPage]);
 
-  const paginatedCategories = categories.slice(
-    (catPage - 1) * CATEGORIES_PER_PAGE,
-    catPage * CATEGORIES_PER_PAGE
-  );
+  const handleBestPrevPage = () => {
+    if (bestProductsPage > 1) setBestProductsPage(bestProductsPage - 1);
+  };
+
+  const handleBestNextPage = () => {
+    if (bestProductsPage < bestProductsTotalPages) setBestProductsPage(bestProductsPage + 1);
+  };
+
   // Group products by category for Products by Category section
   const productsByCategory = products.reduce((groups, product) => {
     if (!groups[product.category]) groups[product.category] = []
     groups[product.category].push(product)
     return groups
   }, {})
-
-  // Pagination logic for Best Products
-  const paginatedProducts = topProducts.slice(
-    (currentPage - 1) * PRODUCTS_PER_PAGE,
-    currentPage * PRODUCTS_PER_PAGE
-  )
-
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1)
-  }
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1)
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -193,113 +202,116 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Categories */}
-<section className="py-16 bg-white">
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div className="text-center mb-12">
-      <h3 className="text-3xl font-bold text-gray-900 mb-4">Shop by Category</h3>
-      <p className="text-gray-600 max-w-2xl mx-auto">
-        Explore our wide range of categories and find exactly what you're looking for
-      </p>
-    </div>
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-      {paginatedCategories.map((category, index) => (
-        <Link
-          to={`/categories?category=${encodeURIComponent(category.name)}`}
-          key={index}
-          className="text-center p-6 bg-gray-50 rounded-lg hover:shadow-md transition-shadow cursor-pointer block"
-        >
-          <div className="text-4xl mb-3">{category.icon}</div>
-          <h4 className="font-semibold text-gray-900 mb-1">{category.name}</h4>
-          <p className="text-sm text-gray-600">{category.count}</p>
-        </Link>
-      ))}
-    </div>
-    {/* Pagination Controls */}
-    <div className="flex justify-center mt-8 space-x-2">
-      <button
-        onClick={() => setCatPage((p) => Math.max(1, p - 1))}
-        disabled={catPage === 1}
-        className={`px-4 py-2 rounded-lg border ${
-          catPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
-        }`}
-      >
-        Previous
-      </button>
-      <span className="px-4 py-2 text-gray-700">
-        Page {catPage} of {totalCatPages}
-      </span>
-      <button
-        onClick={() => setCatPage((p) => Math.min(totalCatPages, p + 1))}
-        disabled={catPage === totalCatPages}
-        className={`px-4 py-2 rounded-lg border ${
-          catPage === totalCatPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
-        }`}
-      >
-        Next
-      </button>
-    </div>
-  </div>
-</section>
-
-
-      {/* Best Products Section with Pagination */}
-      <section className="py-16 bg-gray-50">
+      {/* Categories Section (paginated) */}
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">Best Rated Products</h3>
-            <p className="text-gray-600 max-w-2xl mx-auto">Top 10 highest rated products in our store</p>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">Shop by Category</h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Explore our wide range of categories and find exactly what you're looking for
+            </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {paginatedProducts.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow flex flex-col"
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {paginatedCategories.map((category, index) => (
+              <Link
+                to={`/categories?category=${encodeURIComponent(category.name)}`}
+                key={index}
+                className="text-center p-6 bg-gray-50 rounded-lg hover:shadow-md transition-shadow cursor-pointer block"
               >
-                <div className="relative w-full aspect-w-4 aspect-h-3 bg-gray-100">
-                  <img
-                    src={`http://localhost:3000/uploads/${product.image}`}
-                    alt={product.name}
-                    className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                    loading="lazy"
-                    onError={e => { e.target.onerror = null; e.target.src = '/placeholder.png'; }}
-                    style={{ aspectRatio: '4/3', backgroundColor: '#f3f4f6' }}
-                  />
-                  <div className="absolute top-2 right-2 bg-white/80 rounded-full px-3 py-1 text-xs font-semibold text-yellow-600 flex items-center shadow">
-                    <span className="mr-1">★</span>{product.rating}
-                  </div>
-                </div>
-                <div className="flex-1 flex flex-col p-5">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-1 truncate">{product.name}</h4>
-                  <p className="text-sm text-gray-500 mb-4 truncate">{product.category}</p>
-                  <div className="mt-auto flex items-center justify-between">
-                    <span className="text-xl font-bold text-blue-600">
-                      ${product.price}
-                    </span>
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow">
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              </div>
+                <div className="text-4xl mb-3">{category.icon}</div>
+                <h4 className="font-semibold text-gray-900 mb-1">{category.name}</h4>
+                <p className="text-sm text-gray-600">{category.count}</p>
+              </Link>
             ))}
           </div>
           {/* Pagination Controls */}
           <div className="flex justify-center mt-8 space-x-2">
             <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className={`px-4 py-2 rounded-lg border ${currentPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"}`}
+              onClick={() => setCatPage((p) => Math.max(1, p - 1))}
+              disabled={catPage === 1}
+              className={`px-4 py-2 rounded-lg border ${
+                catPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
+              }`}
             >
               Previous
             </button>
             <span className="px-4 py-2 text-gray-700">
-              Page {currentPage} of {totalPages}
+              Page {catPage} of {totalCatPages}
             </span>
             <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-              className={`px-4 py-2 rounded-lg border ${currentPage === totalPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"}`}
+              onClick={() => setCatPage((p) => Math.min(totalCatPages, p + 1))}
+              disabled={catPage === totalCatPages}
+              className={`px-4 py-2 rounded-lg border ${
+                catPage === totalCatPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Best Products Section with Server-Side Pagination */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">Best Rated Products</h3>
+            <p className="text-gray-600 max-w-2xl mx-auto">Top rated products in our store</p>
+          </div>
+          {loadingBest ? (
+            <div className="text-center text-gray-500 py-12 text-xl">Loading...</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {bestProducts.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow flex flex-col"
+                >
+                  <div className="relative w-full aspect-w-4 aspect-h-3 bg-gray-100">
+                    <img
+                      src={`http://localhost:3000/uploads/${product.image}`}
+                      alt={product.name}
+                      className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                      loading="lazy"
+                      onError={e => { e.target.onerror = null; e.target.src = '/placeholder.png'; }}
+                      style={{ aspectRatio: '4/3', backgroundColor: '#f3f4f6' }}
+                    />
+                    <div className="absolute top-2 right-2 bg-white/80 rounded-full px-3 py-1 text-xs font-semibold text-yellow-600 flex items-center shadow">
+                      <span className="mr-1">★</span>{product.rating}
+                    </div>
+                  </div>
+                  <div className="flex-1 flex flex-col p-5">
+                    <h4 className="font-semibold text-lg text-gray-900 mb-1 truncate">{product.name}</h4>
+                    <p className="text-sm text-gray-500 mb-4 truncate">{product.category}</p>
+                    <div className="mt-auto flex items-center justify-between">
+                      <span className="text-xl font-bold text-blue-600">
+                        ${product.price}
+                      </span>
+                      <button className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow">
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Pagination Controls */}
+          <div className="flex justify-center mt-8 space-x-2">
+            <button
+              onClick={handleBestPrevPage}
+              disabled={bestProductsPage === 1}
+              className={`px-4 py-2 rounded-lg border ${bestProductsPage === 1 ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"}`}
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2 text-gray-700">
+              Page {bestProductsPage} of {bestProductsTotalPages}
+            </span>
+            <button
+              onClick={handleBestNextPage}
+              disabled={bestProductsPage === bestProductsTotalPages}
+              className={`px-4 py-2 rounded-lg border ${bestProductsPage === bestProductsTotalPages ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-white text-blue-600 hover:bg-blue-50"}`}
             >
               Next
             </button>

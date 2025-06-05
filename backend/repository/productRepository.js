@@ -38,3 +38,13 @@ export const updateProductById = async (id, data, imageFilename) => {
   await product.save();
   return product;
 };
+
+
+export const getBestProductsPaginated = async (page = 1, limit = 4) => {
+  const offset = (page - 1) * limit;
+  return await Product.findAndCountAll({
+    order: [['rating', 'DESC']],
+    limit,
+    offset
+  });
+};

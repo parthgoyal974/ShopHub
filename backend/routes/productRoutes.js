@@ -7,6 +7,7 @@ import {
   getProductsByCategory,
   updateProductById
 } from '../repository/productRepository.js';
+import { getBestProductsPaginated } from '../repository/productRepository.js';
 
 const router = express.Router();
 
@@ -57,21 +58,11 @@ router.put('/products/:id', upload.single('image'), async (req, res) => {
 });
 
 
-
-
-// GET /api/products/best?page=1&limit=4
 router.get('/products/best', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 4;
-    const offset = (page - 1) * limit;
-
-    // Get total count of products (for pagination metadata)
-    const { count, rows } = await Product.findAndCountAll({
-      order: [['rating', 'DESC']],
-      limit,
-      offset
-    });
+    const { count, rows } = await getBestProductsPaginated(page, limit);
 
     res.json({
       products: rows,
