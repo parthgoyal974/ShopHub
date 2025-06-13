@@ -47,7 +47,7 @@ const Register = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:3000/auth/register', values);
+      const response = await axios.post('http://localhost:3000/api/auth/register', values);
       console.log(response)
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token)

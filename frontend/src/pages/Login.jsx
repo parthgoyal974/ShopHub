@@ -16,7 +16,7 @@ const Login = () => {
     const handleSumbit = async (e) => {
         e.preventDefault()
         try {
-            const response = await axios.post('http://localhost:3000/auth/login', values)
+            const response = await axios.post('http://localhost:3000/api/auth/login', values)
             if(response.status === 200) {
                 localStorage.setItem('token', response.data.token)
                 navigate('/')

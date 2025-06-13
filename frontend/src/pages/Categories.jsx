@@ -121,7 +121,7 @@ const CategoriesPage = () => {
             </div>
             <nav className="hidden md:flex space-x-8">
               <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">Home</Link>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">Products</a>
+              <Link to="/products" className="text-gray-700 hover:text-blue-600 transition-colors">Products</Link>
               <span className="text-blue-600 font-semibold">Categories</span>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">About</a>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
@@ -278,6 +278,8 @@ const CategoriesPage = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {products.map((product) => (
+                  <Link to={`/products/${product.id}`} key={product.id} className="block">
+  <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow flex flex-col">
                   <div
                     key={product.id}
                     className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow flex flex-col"
@@ -309,7 +311,7 @@ const CategoriesPage = () => {
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </div></div></Link>
                 ))}
               </div>
             )}

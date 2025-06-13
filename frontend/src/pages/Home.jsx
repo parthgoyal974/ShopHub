@@ -32,7 +32,7 @@ const Home = () => {
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem("token")
-      const response = await axios.get("http://localhost:3000/auth/home", {
+      const response = await axios.get("http://localhost:3000/api/auth/home", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -134,7 +134,7 @@ const Home = () => {
             </div>
             <nav className="hidden md:flex space-x-8">
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">Home</a>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">Products</a>
+              <Link to="/Products" className="text-gray-700 hover:text-blue-600 transition-colors">Products</Link>
               <Link to="/categories" className="text-gray-700 hover:text-blue-600 transition-colors">Categories</Link>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">About</a>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">Contact</a>
@@ -276,6 +276,8 @@ const Home = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {bestProducts.map((product) => (
+                <Link to={`/products/${product.id}`} key={product.id} className="block">
+  <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow flex flex-col">
                 <div
                   key={product.id}
                   className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow flex flex-col"
@@ -307,7 +309,7 @@ const Home = () => {
                       </button>
                     </div>
                   </div>
-                </div>
+                </div></div></Link>
               ))}
             </div>
           )}

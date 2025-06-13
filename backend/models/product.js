@@ -1,4 +1,4 @@
-import Sequelize from "sequelize";
+import Sequelize, { DataTypes } from "sequelize";
 import sequelize from "../lib/db.js";
 import Category from "./category.js";
 import Subcategory from "./subCategory.js";
@@ -14,6 +14,10 @@ const Product = sequelize.define("product", {
     type: Sequelize.STRING,
     allowNull: false
   },
+  description: {
+  type: DataTypes.TEXT,
+  allowNull: true
+},
   price: {
     type: Sequelize.FLOAT,
     allowNull: false
@@ -43,7 +47,8 @@ const Product = sequelize.define("product", {
   }
 }
 
-}, { timestamps: false });
+}, { timestamps: false }
+);
 
 // Association
 Product.belongsTo(Category, { foreignKey: "categoryId", as: "category" });
