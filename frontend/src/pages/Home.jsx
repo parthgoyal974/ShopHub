@@ -27,7 +27,27 @@ const Home = () => {
     (catPage - 1) * CATEGORIES_PER_PAGE,
     catPage * CATEGORIES_PER_PAGE
   );
-
+  const handleAddToCart = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+      await axios.post(
+        "http://localhost:3000/api/cart/add",
+        { productId, quantity: 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Added to cart!");
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        navigate("/login");
+      } else {
+        alert("Failed to add to cart.");
+      }
+    }
+  };
   // Fetch user info
   const fetchUser = async () => {
     try {
@@ -313,7 +333,7 @@ const Home = () => {
                         <span className="text-2xl font-bold text-blue-600">
                           ${product.price}
                         </span>
-                        <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-md">
+                        <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-md" onClick={() => handleAddToCart(product.id)}>
                           Add to Cart
                         </button>
                       </div>

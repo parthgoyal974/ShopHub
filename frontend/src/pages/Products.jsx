@@ -6,10 +6,64 @@ import { Link, useNavigate } from "react-router-dom"
 
 const ProductsPage = () => {
   const navigate = useNavigate()
+
   const [searchTerm, setSearchTerm] = useState("")
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [username, setUsername] = useState("")
+
+
+  const handleAddToCart = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+      await axios.post(
+        "http://localhost:3000/api/cart/add",
+        { productId, quantity: 1 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert("Added to cart!");
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        navigate("/login");
+      } else {
+        alert("Failed to add to cart.");
+      }
+    }
+  };
+  // Fetch user info
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await axios.get("http://localhost:3000/api/auth/home", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (response.status === 200) {
+        setUsername(response.data.user.username)
+      } else {
+        setUsername("")
+      }
+    } catch (err) {
+      setUsername("")
+    }
+  }
+
+  useEffect(() => {
+    fetchUser()
+  }, [])
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    setUsername("")
+    navigate("/")
+  }
 
   // Fetch products based on search term
   useEffect(() => {
@@ -77,21 +131,40 @@ const ProductsPage = () => {
               </a>
             </nav>
             <div className="flex items-center space-x-4">
-              <Link to="/cart" className="p-2 text-gray-700 hover:text-blue-600 transition-colors text-xl">
-                🛒
-              </Link>
-              <button
-                onClick={() => navigate("/login")}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium"
-              >
-                Sign In
-              </button>
-              <button
-                onClick={() => navigate("/register")}
-                className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
-              >
-                Sign Up
-              </button>
+              {username ? (
+                <>
+                  <span className="text-gray-700 font-medium">
+                    Welcome, <span className="text-blue-600 font-semibold">{username}</span>
+                  </span>
+                  <Link to="/cart" className="p-2 text-gray-700 hover:text-blue-600 transition-colors text-xl">
+                    🛒
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/cart" className="p-2 text-gray-700 hover:text-blue-600 transition-colors text-xl">
+                    🛒
+                  </Link>
+                  <button
+                    onClick={() => navigate("/login")}
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => navigate("/register")}
+                    className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -202,7 +275,7 @@ const ProductsPage = () => {
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-2xl font-bold text-blue-600">${product.price}</span>
-                        <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-md">
+                        <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-md" onClick={() => handleAddToCart(product.id)}>
                           Add to Cart
                         </button>
                       </div>
