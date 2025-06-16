@@ -122,6 +122,56 @@ const ProductDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
+      {/* Header */}
+      <header className="bg-white shadow-lg sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <h1
+                className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer"
+                onClick={() => navigate("/")}
+              >
+                ShopHub
+              </h1>
+            </div>
+            <nav className="hidden md:flex space-x-8">
+              <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                Home
+              </Link>
+              <Link to="/products" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                Products
+              </Link>
+              <Link to="/categories" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                Categories
+              </Link>
+              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                About
+              </a>
+              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                Contact
+              </a>
+            </nav>
+            <div className="flex items-center space-x-4">
+              <Link to="/cart" className="p-2 text-gray-700 hover:text-blue-600 transition-colors text-xl">
+                🛒
+              </Link>
+              <button
+                onClick={() => navigate("/login")}
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium"
+              >
+                Sign In
+              </button>
+              <button
+                onClick={() => navigate("/register")}
+                className="px-6 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors font-medium"
+              >
+                Sign Up
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
       {/* Breadcrumb */}
       <div className="max-w-6xl mx-auto px-4 mb-6">
         <nav className="flex items-center space-x-2 text-sm text-gray-600">
