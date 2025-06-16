@@ -265,10 +265,18 @@ const Cart = () => {
                   {cartItems.map((item) => (
                     <div key={item.productId} className="p-6 hover:bg-gray-50 transition-colors duration-200">
                       <div className="flex items-center space-x-4">
-                        {/* Product Image Placeholder */}
-                        <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center">
-                          <span className="text-2xl">📦</span>
+                        <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center overflow-hidden">
+                          {item.product?.image ? (
+                            <img
+                              src={`http://localhost:3000/uploads/${item.product.image}`}
+                              alt={item.product?.name || "Product"}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <span className="text-2xl">📦</span>
+                          )}
                         </div>
+
 
                         {/* Product Details */}
                         <div className="flex-1 min-w-0">
