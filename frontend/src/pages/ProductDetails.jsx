@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+
 // import { CartContext } from "../context/CartContext"; // Uncomment if using context
 
 const ProductDetails = () => {
