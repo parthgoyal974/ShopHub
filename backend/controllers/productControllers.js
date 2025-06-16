@@ -31,7 +31,9 @@ const getAllProductsHandler = async (req, res) => {
 
 const getBestProductsHandler = async (req, res) => {
   try {
-    const { page = 1, limit = 4 } = req.query;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 4;
+
     const { count, rows } = await getBestProductsPaginated(page, limit);
     
     res.json({
@@ -41,6 +43,7 @@ const getBestProductsHandler = async (req, res) => {
       currentPage: Number(page)
     });
   } catch (err) {
+    console.log(err)
     res.status(500).json({ message: err.message });
   }
 };
