@@ -16,23 +16,16 @@ const Cart = () => {
     try {
       const token = localStorage.getItem("token")
       const response = await axios.get("http://localhost:3000/api/auth/home", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
-      if (response.status === 200) {
-        setUsername(response.data.user.username)
-      } else {
-        setUsername("")
-      }
-    } catch (err) {
+      if (response.status === 200) setUsername(response.data.user.username)
+      else setUsername("")
+    } catch {
       setUsername("")
     }
   }
 
-  useEffect(() => {
-    fetchUser()
-  }, [])
+  useEffect(() => { fetchUser() }, [])
 
   // Logout handler
   const handleLogout = () => {
@@ -66,60 +59,76 @@ const Cart = () => {
     setLoading(false)
   }
 
-  useEffect(() => {
-    fetchCart()
-    // eslint-disable-next-line
-  }, [])
+  useEffect(() => { fetchCart() }, [])
 
   // Remove item from cart
   const handleRemove = async (productId) => {
+    // Optimistically update UI
+    setCartItems((prev) => prev.filter(item => item.productId !== productId))
     try {
       const token = localStorage.getItem("token")
       await axios.delete(`http://localhost:3000/api/cart/remove/${productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      fetchCart()
-    } catch (err) {
+    } catch {
       setError("Failed to remove item.")
+      fetchCart()
     }
   }
 
-  // Increase quantity
+  // Increase quantity (optimistic UI)
   const handleIncrease = async (productId) => {
+    setCartItems((prev) =>
+      prev.map(item =>
+        item.productId === productId
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      )
+    )
     try {
       const token = localStorage.getItem("token")
       await axios.post(
         "http://localhost:3000/api/cart/add",
         { productId, quantity: 1 },
-        { headers: { Authorization: `Bearer ${token}` } },
+        { headers: { Authorization: `Bearer ${token}` } }
       )
-      fetchCart()
-    } catch (err) {
+    } catch {
       setError("Failed to update quantity.")
+      fetchCart()
     }
   }
 
-  // Decrease quantity
+  // Decrease quantity (optimistic UI)
   const handleDecrease = async (productId, currentQty) => {
     if (currentQty <= 1) {
       handleRemove(productId)
       return
     }
+    setCartItems((prev) =>
+      prev.map(item =>
+        item.productId === productId
+          ? { ...item, quantity: item.quantity - 1 }
+          : item
+      )
+    )
     try {
       const token = localStorage.getItem("token")
       await axios.post(
         "http://localhost:3000/api/cart/add",
         { productId, quantity: -1 },
-        { headers: { Authorization: `Bearer ${token}` } },
+        { headers: { Authorization: `Bearer ${token}` } }
       )
-      fetchCart()
-    } catch (err) {
+    } catch {
       setError("Failed to update quantity.")
+      fetchCart()
     }
   }
 
   // Calculate subtotal
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0)
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + (item.product?.price || 0) * item.quantity,
+    0
+  )
 
   if (loading)
     return (
@@ -277,7 +286,6 @@ const Cart = () => {
                           )}
                         </div>
 
-
                         {/* Product Details */}
                         <div className="flex-1 min-w-0">
                           <Link
@@ -294,6 +302,7 @@ const Cart = () => {
                         {/* Quantity Controls */}
                         <div className="flex items-center space-x-3">
                           <button
+                            type="button"
                             onClick={() => handleDecrease(item.productId, item.quantity)}
                             className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 transition-colors duration-200"
                           >
@@ -301,6 +310,7 @@ const Cart = () => {
                           </button>
                           <span className="w-8 text-center font-semibold text-gray-800">{item.quantity}</span>
                           <button
+                            type="button"
                             onClick={() => handleIncrease(item.productId)}
                             className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center font-bold text-gray-700 transition-colors duration-200"
                           >
@@ -317,6 +327,7 @@ const Cart = () => {
 
                         {/* Remove Button */}
                         <button
+                          type="button"
                           onClick={() => handleRemove(item.productId)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                           title="Remove item"
@@ -341,7 +352,6 @@ const Cart = () => {
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 sticky top-24">
                 <h3 className="text-xl font-bold text-gray-800 mb-6">Order Summary</h3>
-
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-gray-600">
                     <span>Items ({cartItems.length})</span>
@@ -362,15 +372,16 @@ const Cart = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="space-y-3">
                   <button
+                    type="button"
                     onClick={() => alert("Checkout functionality coming soon!")}
                     className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
                     Proceed to Checkout
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       if (window.confirm("Are you sure you want to empty your cart?")) {
                         cartItems.forEach((item) => handleRemove(item.productId))
@@ -381,7 +392,6 @@ const Cart = () => {
                     Empty Cart
                   </button>
                 </div>
-
                 {/* Security Features */}
                 <div className="mt-6 pt-6 border-t border-gray-200">
                   <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
