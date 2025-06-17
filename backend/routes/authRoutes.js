@@ -1,12 +1,27 @@
-import express from 'express'
-import { userRegister, userLogin, home} from "../controllers/authControllers.js"
-import { verifyTokenMiddleware } from '../services/authServices.js'
-const router=express.Router()
+import express from 'express';
+import {
+  userRegister,
+  userLogin,
+  sendOTP,
+  verifyOTPController,
+  home
+} from "../controllers/authControllers.js";
+import { verifyTokenMiddleware } from '../services/authServices.js';
+import rateLimit from 'express-rate-limit';
 
-router.post('/register',userRegister)
+const router = express.Router();
 
-router.post('/login',userLogin)
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { message: 'Too many OTP requests, please try again later.' }
+});
 
-router.get('/home',verifyTokenMiddleware, home)
+router.post('/register', userRegister);
+router.post('/login', userLogin);
+router.post('/send-otp', otpLimiter, sendOTP);
+router.post('/verify-otp', verifyOTPController);
+router.get('/home', verifyTokenMiddleware, home);
+
 
 export default router;

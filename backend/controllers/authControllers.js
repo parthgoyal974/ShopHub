@@ -1,31 +1,72 @@
-import { 
+import {
   registerUser,
   loginUser,
-  getAuthenticatedUser
+  getAuthenticatedUser,
+  sendVerificationOTP,
+  verifyOTP
 } from '../services/authServices.js';
-// Register user
+
+// Register user (no JWT yet, only after verification)
 const userRegister = async (req, res) => {
   try {
-    const { user, token } = await registerUser(req.body);
-    res.status(201).json({ message: "User created successfully", token });
+    const { user } = await registerUser(req.body);
+    res.status(200).json({ message: "User registered. Please verify your email to continue." });
   } catch (err) {
+    console.log(err)
     const status = err.message.includes('exists') ? 409 : 500;
     res.status(status).json({ message: err.message });
   }
-}
+};
 
+// Login user (JWT only if verified)
 const userLogin = async (req, res) => {
   try {
     const token = await loginUser(req.body);
     res.status(200).json({ token });
   } catch (err) {
-    const status = err.message.includes('found') ? 404 : 
-                   err.message.includes('password') ? 401 : 500;
+    let status = 500;
+    if (err.message.includes('found')) status = 404;
+    else if (err.message.includes('password')) status = 401;
+    else if (err.message.includes('verified')) status = 403;
     res.status(status).json({ message: err.message });
   }
-}
+};
 
-// Home route
+// Send OTP (for verification or resend)
+const sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    await sendVerificationOTP(email);
+    res.status(200).json({ message: "OTP sent successfully." });
+  } catch (err) {
+    if (err.message === 'Failed to send OTP email') {
+      res.status(503).json({ message: 'Could not send OTP email. Please try again later.' });
+    } else if (err.message.includes('not found')) {
+      res.status(404).json({ message: err.message });
+    } else if (err.message.includes('verified')) {
+      res.status(400).json({ message: err.message });
+    } else {
+      res.status(400).json({ message: err.message });
+    }
+  }
+};
+
+// Verify OTP (issue JWT on success)
+const verifyOTPController = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const { user, token } = await verifyOTP(email, otp);
+    res.status(200).json({ message: "Email verified successfully.", token });
+  } catch (err) {
+    let status = 400;
+    if (err.message === 'Invalid OTP') status = 401;
+    else if (err.message === 'OTP expired') status = 410;
+    else if (err.message === 'OTP not found') status = 404;
+    res.status(status).json({ message: err.message });
+  }
+};
+
+// Home route (protected)
 const home = async (req, res) => {
   try {
     const user = await getAuthenticatedUser(req.userId);
@@ -33,11 +74,13 @@ const home = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
-}
+};
 
 
 export {
   userRegister,
   userLogin,
+  sendOTP,
+  verifyOTPController,
   home
 };

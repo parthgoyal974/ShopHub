@@ -20,6 +20,11 @@ const Users = sequelize.define("users", {
     password: {
         type: Sequelize.STRING,
         allowNull: false,
+    },
+    verified: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
     }
 }, {
     timestamps: false,

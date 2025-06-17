@@ -39,7 +39,6 @@ const PORT = process.env.PORT;
   try {
     await sequelize.authenticate();
     console.log("Sequelize DB CONNECTED");
-
     await sequelize.sync(); 
 
     app.listen(PORT, () => {
