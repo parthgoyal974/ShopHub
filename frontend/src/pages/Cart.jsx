@@ -4,13 +4,65 @@ import { useEffect, useState } from "react"
 import axios from "axios"
 import { useNavigate, Link } from "react-router-dom"
 
+
+
+
 const Cart = () => {
   const navigate = useNavigate()
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [username, setUsername] = useState("")
+  const [showOrderAlert, setShowOrderAlert] = useState(false);
+  const handleCheckout = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const res = await axios.post(
+        "http://localhost:3000/api/stripe/create-session",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      window.location.href = res.data.url;
+    } catch (err) {
+      console.log(err)
+      setError("Failed to initiate checkout.");
+    }
+  };
 
+  const handleEmptyCart = async () => {
+      for (const item of cartItems) {
+        // eslint-disable-next-line no-await-in-loop
+        await handleRemove(item.productId)
+      }
+      setCartItems([])
+    }
+
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  // Only run if success param is present and cart is not empty
+  if (params.get("success") === "true" && cartItems.length > 0) {
+    const emptyCartAndAlert = async () => {
+      // Remove all items in parallel and wait for all to finish
+      await Promise.all(cartItems.map(item => handleRemove(item.productId)));
+      // Refetch to ensure UI is up-to-date
+      await fetchCart();
+      // Now show the alert
+
+      // Remove the query param from the URL
+      navigate("/cart", { replace: true });
+      setShowOrderAlert(true);
+
+    };
+    emptyCartAndAlert();
+  }
+  // eslint-disable-next-line
+}, [location.search, cartItems.length]);
+
+  
   // Fetch user info
   const fetchUser = async () => {
     try {
@@ -225,6 +277,24 @@ const Cart = () => {
           </div>
         </div>
       </header>
+              {showOrderAlert && (
+  <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+    <div className="flex items-center bg-green-50 border border-green-200 rounded-lg shadow-lg px-6 py-4">
+      <span className="text-2xl mr-3">✅</span>
+      <div className="flex-1">
+        <div className="text-green-800 font-semibold text-lg">Order Placed Successfully</div>
+        <div className="text-green-700 text-sm">Thank you for your purchase!</div>
+      </div>
+      <button
+        onClick={() => setShowOrderAlert(false)}
+        className="ml-4 text-green-700 hover:text-green-900 font-bold text-xl focus:outline-none"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+    </div>
+  </div>
+)}
 
       {/* Page Header */}
       <div className="bg-white shadow-sm border-b">
@@ -375,7 +445,7 @@ const Cart = () => {
                 <div className="space-y-3">
                   <button
                     type="button"
-                    onClick={() => alert("Checkout functionality coming soon!")}
+                    onClick={handleCheckout} disabled={!cartItems.length}
                     className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
                   >
                     Proceed to Checkout
