@@ -35,3 +35,9 @@ export const removeItemFromCart = async (userId, productId) => {
   const cart = await getOrCreateCart(userId);
   return await CartItem.destroy({ where: { cartId: cart.id, productId } });
 };
+
+
+export const clearUserCart = async (userId) => {
+  const cart = await getOrCreateCart(userId);
+  await CartItem.destroy({ where: { cartId: cart.id } });
+};

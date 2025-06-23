@@ -123,9 +123,7 @@ const ProductsPage = () => {
               <Link to="/categories" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 Categories
               </Link>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                About
-              </a>
+<Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Orders</Link>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 Contact
               </a>
@@ -136,9 +134,7 @@ const ProductsPage = () => {
                   <span className="text-gray-700 font-medium">
                     Welcome, <span className="text-blue-600 font-semibold">{username}</span>
                   </span>
-                  <Link to="/cart" className="p-2 text-gray-700 hover:text-blue-600 transition-colors text-xl">
-                    🛒
-                  </Link>
+                    <Link to="/cart" className="p-2 text-gray-700 hover:text-blue-600 transition-colors text-xl">🛒</Link>
                   <button
                     onClick={handleLogout}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"

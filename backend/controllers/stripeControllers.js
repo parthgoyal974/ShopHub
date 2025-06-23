@@ -1,5 +1,5 @@
 import Stripe from 'stripe';
-import { getCartItems } from '../services/cartServices.js'; // Returns all cart items for userId, including Product info
+import { getCartItems } from '../services/cartServices.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -27,9 +27,9 @@ export const createStripeSession = async (req, res) => {
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-  success_url: `${process.env.BASE_URL}/cart?success=true`,
+  success_url: `${process.env.BASE_URL}/orders?success=true`,
   cancel_url: `${process.env.BASE_URL}/cart`,
-      customer_email: req.userEmail, // Optional: if you store email in JWT
+      customer_email: req.userEmail,
     });
 
     res.json({ url: session.url });

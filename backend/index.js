@@ -8,6 +8,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import routes from './routes/index.js';
+
+import Order from './models/order.js';
+import OrderItem from './models/orderItem.js';
+import Cart from './models/cart.js';
 dotenv.config();
 
 const app = express();
@@ -39,6 +43,7 @@ const PORT = process.env.PORT;
   try {
     await sequelize.authenticate();
     console.log("Sequelize DB CONNECTED");
+    await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
     await sequelize.sync(); 
 
     app.listen(PORT, () => {

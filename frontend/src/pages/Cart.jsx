@@ -235,9 +235,9 @@ useEffect(() => {
               <Link to="/categories" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 Categories
               </Link>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                About
-              </a>
+              <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+                Orders
+              </Link>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 Contact
               </a>

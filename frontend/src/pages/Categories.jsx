@@ -177,9 +177,7 @@ const CategoriesPage = () => {
                 Products
               </Link>
               <span className="text-blue-600 font-bold">Categories</span>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                About
-              </a>
+<Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Orders</Link>
               <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
                 Contact
               </a>

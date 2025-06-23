@@ -23,5 +23,4 @@ router.post('/send-otp', otpLimiter, sendOTP);
 router.post('/verify-otp', verifyOTPController);
 router.get('/home', verifyTokenMiddleware, home);
 
-
 export default router;
