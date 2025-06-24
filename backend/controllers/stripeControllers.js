@@ -17,7 +17,7 @@ export const createStripeSession = async (req, res) => {
           name: item.product.name,
           images: item.product.image ? [item.product.image] : [],
         },
-        unit_amount: Math.round(item.product.price * 100),
+        unit_amount: Math.round(item.product.price * 110),
       },
       quantity: item.quantity,
     }));

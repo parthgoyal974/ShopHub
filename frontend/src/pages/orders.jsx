@@ -256,18 +256,29 @@ const Orders = () => {
                     <tbody className="bg-white divide-y divide-gray-100">
                       {(order.orderItems || []).map((item) => (
                         <tr key={item.id}>
-                          <td className="px-4 py-3 flex items-center space-x-3">
-                            {item.product?.image ? (
-                              <img
-                                src={`http://localhost:3000/uploads/${item.product.image}`}
-                                alt={item.product?.name || "Product"}
-                                className="w-12 h-12 object-cover rounded"
-                              />
-                            ) : (
-                              <span className="text-2xl">📦</span>
-                            )}
-                            <span className="font-medium text-gray-800">{item.product?.name || "Product"}</span>
-                          </td>
+                          <td className="px-4 py-3">
+  <Link
+    to={`/products/${item.productId}`}
+    className="flex items-center space-x-3 group transition-transform duration-200"
+    style={{ textDecoration: "none" }}
+  >
+    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:scale-105 transition-all duration-200">
+      {item.product?.image ? (
+        <img
+          src={`http://localhost:3000/uploads/${item.product.image}`}
+          alt={item.product?.name || "Product"}
+          className="object-cover w-full h-full"
+        />
+      ) : (
+        <span className="text-2xl">📦</span>
+      )}
+    </div>
+    <span className="font-medium text-gray-800 group-hover:text-purple-600 transition-colors duration-200">
+      {item.product?.name || "Product"}
+    </span>
+  </Link>
+</td>
+
                           <td className="px-4 py-3">{item.quantity}</td>
                           <td className="px-4 py-3">${item.price?.toFixed(2)}</td>
                           <td className="px-4 py-3 font-semibold">
