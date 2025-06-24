@@ -1,0 +1,158 @@
+<%- include('partials/header', { activePage: 'products' }) %>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h3 class="mb-0"><%= formTitle %></h3>
+        </div>
+        <div class="card-body">
+          <form 
+            action="<%= formAction %><% if (product.id) { %>?_method=PUT<% } %>" 
+            method="POST" 
+            enctype="multipart/form-data"
+            autocomplete="off"
+          >
+            <div class="form-group">
+              <label for="name">Product Name</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="name" 
+                name="name" 
+                value="<%= product.name || '' %>" 
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="description">Description</label>
+              <textarea 
+                class="form-control" 
+                id="description" 
+                name="description"
+                rows="3"
+              ><%= product.description || '' %></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-md-4">
+                <label for="price">Price ($)</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  id="price" 
+                  name="price" 
+                  value="<%= product.price || '' %>" 
+                  step="0.01" 
+                  min="0"
+                  required
+                >
+              </div>
+              <div class="form-group col-md-4">
+                <label for="categoryId">Category</label>
+                <select 
+                  class="form-control" 
+                  id="categoryId" 
+                  name="categoryId" 
+                  required
+                  onchange="fetchSubcategories(this.value)"
+                >
+                  <option value="">Select Category</option>
+                  <% categories.forEach(cat => { %>
+                    <option 
+                      value="<%= cat.id %>" 
+                      <%= product.categoryId == cat.id ? 'selected' : '' %>
+                    ><%= cat.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+              <div class="form-group col-md-4">
+                <label for="subcategoryId">Subcategory</label>
+                <select 
+                  class="form-control" 
+                  id="subcategoryId" 
+                  name="subcategoryId"
+                >
+                  <option value="">Select Subcategory</option>
+                  <% subcategories.forEach(sub => { %>
+                    <option 
+                      value="<%= sub.id %>" 
+                      <%= product.subcategoryId == sub.id ? 'selected' : '' %>
+                    ><%= sub.name %></option>
+                  <% }) %>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="image">Product Image</label>
+              <% if (product.image) { %>
+                <div class="mb-2">
+                  <img 
+                    src="/uploads/<%= product.image %>" 
+                    alt="Product Image" 
+                    style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;"
+                  >
+                </div>
+              <% } %>
+              <input 
+                type="file" 
+                class="form-control-file" 
+                id="image" 
+                name="image"
+                accept="image/*"
+              >
+              <% if (product.image) { %>
+                <small class="form-text text-muted">
+                  Leave blank to keep existing image.
+                </small>
+              <% } %>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <%= formTitle %>
+            </button>
+            <a href="/admin/products" class="btn btn-secondary ml-2">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>
+
+<script>
+  // Dynamically fetch subcategories on category change (AJAX)
+  function fetchSubcategories(categoryId) {
+    const subcategorySelect = document.getElementById('subcategoryId');
+    subcategorySelect.innerHTML = '<option value="">Loading...</option>';
+    if (!categoryId) {
+      subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+      return;
+    }
+    fetch('/api/subcategories/by-category/' + categoryId)
+      .then(res => res.json())
+      .then(data => {
+        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+        data.forEach(sub => {
+          const opt = document.createElement('option');
+          opt.value = sub.id;
+          opt.textContent = sub.name;
+          if (<%= product.subcategoryId || 'null' %> == sub.id) {
+            opt.selected = true;
+          }
+          subcategorySelect.appendChild(opt);
+        });
+      })
+      .catch(() => {
+        subcategorySelect.innerHTML = '<option value="">Select Subcategory</option>';
+      });
+  }
+  // If editing, auto-load subcategories for selected category
+  <% if (product.categoryId) { %>
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchSubcategories(<%= product.categoryId %>);
+    });
+  <% } %>
+</script>

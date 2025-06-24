@@ -1,0 +1,77 @@
+<%- include('partials/header', { activePage: 'dashboard' }) %>
+<h1 class="mb-4">Dashboard Overview</h1>
+<div class="row dashboard-stats">
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon mb-2"><i data-feather="box"></i></div>
+        <div class="h3"><%= stats.productCount %></div>
+        <div class="text-muted">Products</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon mb-2"><i data-feather="layers"></i></div>
+        <div class="h3"><%= stats.categoryCount %></div>
+        <div class="text-muted">Categories</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon mb-2"><i data-feather="tag"></i></div>
+        <div class="h3"><%= stats.subcategoryCount %></div>
+        <div class="text-muted">Subcategories</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon mb-2"><i data-feather="shopping-cart"></i></div>
+        <div class="h3"><%= stats.orderCount %></div>
+        <div class="text-muted">Orders</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-body text-center">
+        <div class="stat-icon mb-2"><i data-feather="users"></i></div>
+        <div class="h3"><%= stats.userCount %></div>
+        <div class="text-muted">Users</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Example: Add a quick links or recent activity section for density -->
+<div class="row mt-4">
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white">
+        <strong>Quick Actions</strong>
+      </div>
+      <div class="card-body">
+        <a href="/admin/products/add" class="btn btn-primary btn-sm mr-2 mb-2"><i data-feather="plus"></i> Add Product</a>
+        <a href="/admin/categories" class="btn btn-secondary btn-sm mr-2 mb-2"><i data-feather="layers"></i> Manage Categories</a>
+        <a href="/admin/orders" class="btn btn-info btn-sm mb-2"><i data-feather="shopping-cart"></i> View Orders</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow-sm border-0 h-100">
+      <div class="card-header bg-white">
+        <strong>Recent Activity</strong>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">No recent activity yet. Once your store has activity, it will appear here.</p>
+        <!-- You can later render recent orders, new users, etc. -->
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -25,7 +25,12 @@ const Users = sequelize.define("users", {
         type: Sequelize.BOOLEAN,
         allowNull: false,
         defaultValue: false
-    }
+    },
+    isAdmin: {
+       type: Sequelize.BOOLEAN,
+       allowNull: false,
+       defaultValue: false
+   }
 }, {
     timestamps: false,
     indexes: [

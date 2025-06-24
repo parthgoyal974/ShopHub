@@ -1,0 +1,42 @@
+<%- include('partials/header', { activePage: 'subcategories' }) %>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h3 class="mb-0"><%= formTitle %></h3>
+        </div>
+        <div class="card-body">
+          <form action="<%= formAction %>" method="POST" autocomplete="off">
+            <% if (formAction.includes('_method=PUT')) { %>
+              <input type="hidden" name="_method" value="PUT">
+            <% } %>
+            <div class="form-group">
+              <label for="name">Subcategory Name</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="name" 
+                name="name" 
+                value="<%= subcategory.name || '' %>" 
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="parentId">Category</label>
+              <select class="form-control" id="parentId" name="parentId" required>
+                <option value="">Select Category</option>
+                <% categories.forEach(cat => { %>
+                  <option value="<%= cat.id %>" <%= subcategory.parentId == cat.id ? 'selected' : '' %>><%= cat.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary"><%= formTitle %></button>
+            <a href="/admin/subcategories" class="btn btn-secondary ml-2">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

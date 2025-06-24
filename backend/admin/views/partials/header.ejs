@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Feather Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.css">
+  <link rel="stylesheet" href="/admin/public/css/admin.css">
+  <style>
+    body {
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      background: #fff;
+      border-bottom: 1px solid #e3e6f0;
+      height: 60px;
+      position: fixed;
+      width: 100%;
+      left: 0;
+      top: 0;
+      z-index: 1100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    .sidebar {
+      height: 100vh;
+      background: linear-gradient(135deg, #6a82fb 0%, #fc5c7d 100%);
+      color: #fff;
+      min-width: 220px;
+      position: fixed;
+      top: 60px; /* below navbar */
+      left: 0;
+      padding-top: 2rem;
+      transition: all 0.3s;
+      z-index: 1000;
+      border-top-right-radius: 18px;
+    }
+    .sidebar .nav-link {
+      color: #fff;
+      font-weight: 500;
+      padding: 1rem 1.5rem;
+      transition: background 0.2s;
+    }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      text-decoration: none;
+    }
+    .main-content {
+      margin-left: 220px;
+      padding: 40px 2rem 2rem 2rem;
+      min-height: 100vh;
+      background: #f4f6f9;
+      padding-top: 80px; /* space for fixed navbar */
+      transition: margin-left 0.3s;
+    }
+    @media (max-width: 991px) {
+      .sidebar {
+        min-width: 60px;
+        padding-top: 2rem;
+      }
+      .main-content {
+        margin-left: 60px;
+      }
+      .sidebar .nav-link {
+        text-align: center;
+        padding: 1rem 0.5rem;
+        font-size: 0.95rem;
+      }
+    }
+    @media (max-width: 767px) {
+      .sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 80px 1rem 1rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand navbar-light bg-white shadow-sm">
+    <a class="navbar-brand" href="/admin">AdminPanel</a>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <span class="nav-link">Welcome, Admin</span>
+      </li>
+    </ul>
+  </nav>
+  <div class="sidebar d-none d-md-block">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link <% if (activePage === 'dashboard') { %>active<% } %>" href="/admin">
+          <i data-feather="home"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/products">
+          <i data-feather="box"></i> Products
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/categories">
+          <i data-feather="layers"></i> Categories
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/subcategories">
+          <i data-feather="tag"></i> Subcategories
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/orders">
+          <i data-feather="shopping-cart"></i> Orders
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin/users">
+          <i data-feather="users"></i> Users
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="main-content">

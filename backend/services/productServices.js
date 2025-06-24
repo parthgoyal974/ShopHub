@@ -59,6 +59,9 @@ export const getProductsBySubcategoryId = async (subcategoryId) => {
 
 // Update a product by id
 export const updateProductById = async (id, data, imageFilename) => {
+  if (data.subcategoryId === '') {
+      data.subcategoryId = null;
+    }
   const product = await Product.findByPk(id);
   if (!product) throw new Error('Product not found');
 

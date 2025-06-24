@@ -1,0 +1,64 @@
+<%- include('partials/header', { activePage: 'users' }) %>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h3 class="mb-0"><%= formTitle %></h3>
+        </div>
+        <div class="card-body">
+          <form action="<%= formAction %>" method="POST" autocomplete="off">
+            <% if (formAction.includes('_method=PUT')) { %>
+              <input type="hidden" name="_method" value="PUT">
+            <% } %>
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="username" 
+                name="username" 
+                value="<%= user.username || '' %>" 
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input 
+                type="email" 
+                class="form-control" 
+                id="email" 
+                name="email" 
+                value="<%= user.email || '' %>" 
+                required
+              >
+            </div>
+            <div class="form-group">
+              <label for="password">Password <% if (user.id) { %><small>(leave blank to keep unchanged)</small><% } %></label>
+              <input 
+                type="password" 
+                class="form-control" 
+                id="password" 
+                name="password"
+                <%= user.id ? '' : 'required' %>
+              >
+            </div>
+            <div class="form-group form-check">
+              <input 
+                type="checkbox" 
+                class="form-check-input" 
+                id="verified" 
+                name="verified"
+                <%= user.verified ? 'checked' : '' %>
+              >
+              <label class="form-check-label" for="verified">Verified</label>
+            </div>
+            <button type="submit" class="btn btn-primary"><%= formTitle %></button>
+            <a href="/admin/users" class="btn btn-secondary ml-2">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

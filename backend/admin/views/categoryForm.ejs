@@ -1,0 +1,33 @@
+<%- include('partials/header', { activePage: 'categories' }) %>
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-white">
+          <h3 class="mb-0"><%= formTitle %></h3>
+        </div>
+        <div class="card-body">
+          <form action="<%= formAction %>" method="POST" autocomplete="off">
+            <% if (formAction.includes('_method=PUT')) { %>
+              <input type="hidden" name="_method" value="PUT">
+            <% } %>
+            <div class="form-group">
+              <label for="name">Category Name</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="name" 
+                name="name" 
+                value="<%= category.name || '' %>" 
+                required
+              >
+            </div>
+            <button type="submit" class="btn btn-primary"><%= formTitle %></button>
+            <a href="/admin/categories" class="btn btn-secondary ml-2">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>
