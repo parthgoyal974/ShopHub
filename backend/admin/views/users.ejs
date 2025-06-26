@@ -1,6 +1,8 @@
 <%- include('partials/header', { activePage: 'users' }) %>
 <h1 class="mb-4">Users</h1>
 <a href="/admin/users/add" class="btn btn-success mb-3">Add User</a>
+
+<h3>Verified Users</h3>
 <table class="table table-striped table-bordered">
   <thead>
     <tr>
@@ -12,23 +14,52 @@
     </tr>
   </thead>
   <tbody>
-    <% users.forEach((user, idx) => { %>
+    <% verifiedUsers.forEach((user, idx) => { %>
       <tr>
         <td><%= idx + 1 %></td>
         <td><%= user.username %></td>
         <td><%= user.email %></td>
-        <td>
-          <% if (user.verified) { %>
-            <span class="badge badge-success">Yes</span>
-          <% } else { %>
-            <span class="badge badge-secondary">No</span>
-          <% } %>
-        </td>
+        <td><span class="badge badge-success">Yes</span></td>
         <td>
           <a href="/admin/users/edit/<%= user.id %>" class="btn btn-sm btn-info">Edit</a>
-          <form action="/admin/users/delete/<%= user.id %>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
-            <button type="submit" class="btn btn-sm btn-danger ml-1">Delete</button>
+          <form action="/admin/users/deactivate" method="POST" style="display:inline;">
+            <input type="hidden" name="id" value="<%= user.id %>">
+            <button type="submit" class="btn btn-sm btn-warning ml-1">Deactivate</button>
           </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<h3 class="mt-5">Unverified Users</h3>
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Source</th>
+      <th>Verified</th>
+      <th style="width:180px;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% unverifiedUsers.forEach((user, idx) => { %>
+      <tr>
+        <td><%= idx + 1 %></td>
+        <td><%= user.username %></td>
+        <td><%= user.email %></td>
+        <td><%= user.source %></td>
+        <td><span class="badge badge-secondary">No</span></td>
+        <td>
+          <% if (user.source === 'users' || user.source === 'unverified') { %>
+            <form action="/admin/users/activate" method="POST" style="display:inline;">
+              <input type="hidden" name="id" value="<%= user.id %>">
+              <input type="hidden" name="source" value="<%= user.source %>">
+              <button type="submit" class="btn btn-sm btn-success">Activate</button>
+            </form>
+          <% } %>
         </td>
       </tr>
     <% }) %>

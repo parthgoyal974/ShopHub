@@ -5,7 +5,8 @@ import {
   handleAddUser,
   renderEditUser,
   handleEditUser,
-  handleDeleteUser
+  handleActivateUser,
+  handleDeactivateUser
 } from '../controllers/adminUserController.js';
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.post('/add', handleAddUser);
 router.get('/edit/:id', renderEditUser);
 router.put('/edit/:id', handleEditUser);
 router.post('/edit/:id', handleEditUser); // fallback for method-override
-router.post('/delete/:id', handleDeleteUser);
+router.post('/activate', handleActivateUser);
+router.post('/deactivate', handleDeactivateUser);
 
 export default router;

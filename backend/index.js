@@ -12,6 +12,7 @@ import adminRoutes from './admin/routes/adminRoutes.js';
 import methodOverride from 'method-override';
 dotenv.config();
 import Users from './models/users.js';
+import UnverifiedUsers from './models/unverifiedUsers.js';
 const app = express();
 
 // Middleware
@@ -51,9 +52,7 @@ const PORT = process.env.PORT;
   try {
     await sequelize.authenticate();
     console.log("Sequelize DB CONNECTED");
-    await sequelize.query("SET FOREIGN_KEY_CHECKS = 0");
     await sequelize.sync(); 
-
     app.listen(PORT, () => {
       console.log(`Server Running on Port ${PORT}`);
     });
