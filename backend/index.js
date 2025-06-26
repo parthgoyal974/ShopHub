@@ -14,11 +14,27 @@ dotenv.config();
 import Users from './models/users.js';
 import UnverifiedUsers from './models/unverifiedUsers.js';
 const app = express();
+import session from 'express-session';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
+app.use(session({
+  secret: process.env.ADMIN_SESSION_SECRET, 
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 30 * 60 * 1000 } // 30 minutes
+}));
+
+// Optional: Extend session on each request (rolling session)
+app.use((req, res, next) => {
+  if (req.session) {
+    req.session._garbage = Date();
+    req.session.touch();
+  }
+  next();
+});
 
 // Create __dirname equivalent
 const __filename = fileURLToPath(import.meta.url);
@@ -53,6 +69,8 @@ const PORT = process.env.PORT;
     await sequelize.authenticate();
     console.log("Sequelize DB CONNECTED");
     await sequelize.sync(); 
+    
+
     app.listen(PORT, () => {
       console.log(`Server Running on Port ${PORT}`);
     });

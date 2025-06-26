@@ -1,5 +1,6 @@
 <%- include('partials/header', { activePage: 'dashboard' }) %>
 <h1 class="mb-4">Dashboard Overview</h1>
+
 <div class="row dashboard-stats">
   <div class="col-md-4 mb-4">
     <div class="card shadow-sm border-0 h-100">
@@ -48,30 +49,133 @@
   </div>
 </div>
 
-<!-- Example: Add a quick links or recent activity section for density -->
 <div class="row mt-4">
   <div class="col-lg-6 mb-4">
     <div class="card shadow-sm border-0">
       <div class="card-header bg-white">
-        <strong>Quick Actions</strong>
+        <strong>Key Analytics</strong>
       </div>
       <div class="card-body">
-        <a href="/admin/products/add" class="btn btn-primary btn-sm mr-2 mb-2"><i data-feather="plus"></i> Add Product</a>
-        <a href="/admin/categories" class="btn btn-secondary btn-sm mr-2 mb-2"><i data-feather="layers"></i> Manage Categories</a>
-        <a href="/admin/orders" class="btn btn-info btn-sm mb-2"><i data-feather="shopping-cart"></i> View Orders</a>
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Total Sales (All Time)
+            <span class="badge badge-success badge-pill">$<%= stats.totalSales.toFixed(2) %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Sales (Last 30 Days)
+            <span class="badge badge-info badge-pill">$<%= stats.salesLast30.toFixed(2) %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Total Orders
+            <span class="badge badge-primary badge-pill"><%= stats.orderCount %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Orders (Last 30 Days)
+            <span class="badge badge-secondary badge-pill"><%= stats.ordersLast30 %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            New Users (Last 30 Days)
+            <span class="badge badge-warning badge-pill"><%= stats.newUsersLast30 %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Average Order Value
+            <span class="badge badge-success badge-pill">$<%= stats.avgOrderValue %></span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
   <div class="col-lg-6 mb-4">
-    <div class="card shadow-sm border-0 h-100">
+    <div class="card shadow-sm border-0">
       <div class="card-header bg-white">
-        <strong>Recent Activity</strong>
+        <strong>Order Status Breakdown</strong>
       </div>
       <div class="card-body">
-        <p class="text-muted">No recent activity yet. Once your store has activity, it will appear here.</p>
-        <!-- You can later render recent orders, new users, etc. -->
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Completed
+            <span class="badge badge-success badge-pill"><%= stats.completedOrders %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Shipped
+            <span class="badge badge-info badge-pill"><%= stats.shippedOrders %></span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Cancelled
+            <span class="badge badge-danger badge-pill"><%= stats.cancelledOrders %></span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-lg-12 mb-4">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white">
+        <strong>Top Products by Rating</strong>
+      </div>
+      <div class="card-body">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Rating</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% topProducts.forEach(product => { %>
+              <tr>
+                <td><%= product.name %></td>
+                <td><%= product.rating %></td>
+                <td>$<%= product.price %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Orders per day chart (last 7 days) -->
+<div class="row mt-4">
+  <div class="col-lg-12">
+    <div class="card shadow-sm border-0">
+      <div class="card-header bg-white">
+        <strong>Orders in Last 7 Days</strong>
+      </div>
+      <div class="card-body">
+        <canvas id="ordersChart" width="400" height="100"></canvas>
       </div>
     </div>
   </div>
 </div>
 <%- include('partials/footer') %>
+
+<!-- Chart.js and Feather Icons -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  feather.replace();
+
+  // Orders per day chart
+  const ctx = document.getElementById('ordersChart').getContext('2d');
+  const ordersChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: <%- JSON.stringify(stats.ordersPerDay.map(d => d.date)) %>,
+      datasets: [{
+        label: 'Orders',
+        data: <%- JSON.stringify(stats.ordersPerDay.map(d => d.count)) %>,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+</script>

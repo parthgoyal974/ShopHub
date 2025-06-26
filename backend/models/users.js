@@ -32,7 +32,9 @@ const Users = sequelize.define("users", {
        defaultValue: false
    }
 }, {
-    timestamps: false,
+    timestamps: true, // Enable timestamps
+    createdAt: 'createdAt', // Map to existing column
+    updatedAt: false,
     indexes: [
         {
             unique: true,

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Passkey</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body { background: #f4f6f9; }
+    .center-form { max-width: 400px; margin: 100px auto; }
+  </style>
+</head>
+<body>
+  <div class="center-form card shadow-sm p-4">
+    <h3 class="mb-3">Enter Admin Passkey</h3>
+    <% if (error) { %>
+      <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <form method="POST" action="/admin/passkey">
+      <div class="form-group">
+        <input type="password" class="form-control" name="passkey" placeholder="Passkey" required autofocus>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Enter</button>
+    </form>
+  </div>
+</body>
+</html>
