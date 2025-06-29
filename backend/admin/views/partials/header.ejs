@@ -3,50 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
+  <title>Admin Panel</title>
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <!-- Feather Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.css">
-  <link rel="stylesheet" href="/admin/public/css/admin.css">
   <style>
     body {
       background-color: #f4f6f9;
-      margin: 0;
-      padding: 0;
     }
-    .navbar {
+    .navbar-admin {
+      background: linear-gradient(90deg, #6a82fb 0%, #fc5c7d 100%);
+      color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      padding: 0.5rem 2rem;
+    }
+    .navbar-admin .navbar-brand {
+      color: #fff;
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 1.4rem;
+    }
+    .navbar-admin .nav-link, .navbar-admin .dropdown-item {
+      color: #fff !important;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .navbar-admin .nav-link:hover, .navbar-admin .dropdown-item:hover {
+      color: #ffe082 !important;
+      text-decoration: none;
+    }
+    .navbar-admin .btn-logout {
       background: #fff;
-      border-bottom: 1px solid #e3e6f0;
-      height: 60px;
-      position: fixed;
-      width: 100%;
-      left: 0;
-      top: 0;
-      z-index: 1100;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      color: #fc5c7d;
+      border: none;
+      font-weight: 600;
+      border-radius: 20px;
+      padding: 0.4rem 1.2rem;
+      transition: background 0.2s, color 0.2s;
+      box-shadow: 0 2px 6px rgba(252,92,125,0.08);
+    }
+    .navbar-admin .btn-logout:hover {
+      background: #fc5c7d;
+      color: #fff;
     }
     .sidebar {
       height: 100vh;
-      background: linear-gradient(135deg, #6a82fb 0%, #fc5c7d 100%);
+      background: #232946;
       color: #fff;
       min-width: 220px;
       position: fixed;
-      top: 60px; /* below navbar */
+      top: 56px;
       left: 0;
       padding-top: 2rem;
-      transition: all 0.3s;
       z-index: 1000;
-      border-top-right-radius: 18px;
     }
     .sidebar .nav-link {
       color: #fff;
       font-weight: 500;
       padding: 1rem 1.5rem;
+      border-radius: 0 30px 30px 0;
+      margin-bottom: 0.2rem;
       transition: background 0.2s;
     }
-    .sidebar .nav-link:hover, .sidebar .nav-link.active {
-      background: rgba(255,255,255,0.1);
+    .sidebar .nav-link.active, .sidebar .nav-link:hover {
+      background: #6a82fb;
       color: #fff;
       text-decoration: none;
     }
@@ -55,7 +76,7 @@
       padding: 40px 2rem 2rem 2rem;
       min-height: 100vh;
       background: #f4f6f9;
-      padding-top: 80px; /* space for fixed navbar */
+      padding-top: 80px;
       transition: margin-left 0.3s;
     }
     @media (max-width: 991px) {
@@ -84,13 +105,18 @@
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand navbar-light bg-white shadow-sm">
-    <a class="navbar-brand" href="/admin">AdminPanel</a>
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-        <span class="nav-link">Welcome, Admin</span>
-      </li>
-    </ul>
+  <nav class="navbar navbar-admin navbar-expand-lg fixed-top">
+    <a class="navbar-brand" href="/admin">
+      <i data-feather="bar-chart-2"></i> AdminPanel
+    </a>
+    <div class="ml-auto d-flex align-items-center">
+      <span class="mr-3 font-weight-bold" style="font-size:1rem;">
+        <i data-feather="user"></i> Admin
+      </span>
+      <a href="/admin/logout" class="btn btn-logout ml-2" title="Logout">
+        <i data-feather="log-out"></i> Logout
+      </a>
+    </div>
   </nav>
   <div class="sidebar d-none d-md-block">
     <ul class="nav flex-column">
@@ -100,30 +126,34 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/admin/products">
+        <a class="nav-link <% if (activePage === 'products') { %>active<% } %>" href="/admin/products">
           <i data-feather="box"></i> Products
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/admin/categories">
+        <a class="nav-link <% if (activePage === 'categories') { %>active<% } %>" href="/admin/categories">
           <i data-feather="layers"></i> Categories
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/admin/subcategories">
+        <a class="nav-link <% if (activePage === 'subcategories') { %>active<% } %>" href="/admin/subcategories">
           <i data-feather="tag"></i> Subcategories
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/admin/orders">
+        <a class="nav-link <% if (activePage === 'orders') { %>active<% } %>" href="/admin/orders">
           <i data-feather="shopping-cart"></i> Orders
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="/admin/users">
+        <a class="nav-link <% if (activePage === 'users') { %>active<% } %>" href="/admin/users">
           <i data-feather="users"></i> Users
         </a>
       </li>
     </ul>
   </div>
   <div class="main-content">
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script>
+    feather.replace();
+  </script>

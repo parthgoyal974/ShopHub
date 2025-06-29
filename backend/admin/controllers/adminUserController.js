@@ -2,42 +2,83 @@ import Users from '../../models/users.js';
 import UnverifiedUsers from '../../models/unverifiedUsers.js';
 import bcrypt from 'bcrypt';
 
-// List all users (verified and unverified)
+// GET /admin/users
 export const renderUserList = async (req, res) => {
   try {
-    // Get all verified users
-    const verifiedUsers = await Users.findAll({ where: { verified: true } });
-    // Get all unverified users from both tables
-    const unverifiedInUsers = await Users.findAll({ where: { verified: false } });
-    const unverifiedInUnverified = await UnverifiedUsers.findAll();
+    // Pagination
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const offset = (page - 1) * limit;
 
-    // Unify unverified users for display
-    const allUnverified = [
-      ...unverifiedInUsers.map(u => ({
-        id: u.id,
-        username: u.username,
-        email: u.email,
-        verified: false,
-        source: 'users'
-      })),
-      ...unverifiedInUnverified.map(u => ({
-        id: u.id,
-        username: u.username,
-        email: u.email,
-        verified: false,
-        source: 'unverified'
-      }))
-    ];
+    // Filtering
+    const filter = req.query.filter || 'all'; // 'all', 'verified', 'unverified'
+
+    let users = [];
+    let total = 0;
+
+    if (filter === 'verified') {
+      total = await Users.count({ where: { verified: true } });
+      users = await Users.findAll({
+        where: { verified: true },
+        offset,
+        limit,
+        order: [['id', 'ASC']]
+      });
+      // Mark source for the frontend
+      users = users.map(u => ({ ...u.get({ plain: true }), verified: true, source: 'users' }));
+    } else if (filter === 'unverified') {
+      // Unverified in users table
+      const unverifiedUsers = await Users.findAll({
+        where: { verified: false },
+        order: [['id', 'ASC']]
+      });
+      // Unverified in unverified_users table
+      const pendingUsers = await UnverifiedUsers.findAll({ order: [['id', 'ASC']] });
+
+      // Merge and paginate
+      let allUnverified = [
+        ...unverifiedUsers.map(u => ({ ...u.get({ plain: true }), verified: false, source: 'users' })),
+        ...pendingUsers.map(u => ({ ...u.get({ plain: true }), verified: false, source: 'unverified' }))
+      ];
+      total = allUnverified.length;
+      users = allUnverified.slice(offset, offset + limit);
+    } else {
+      // 'all' - merge verified, unverified, and pending
+      const verified = await Users.findAll({
+        where: { verified: true },
+        order: [['id', 'ASC']]
+      });
+      const unverified = await Users.findAll({
+        where: { verified: false },
+        order: [['id', 'ASC']]
+      });
+      const pending = await UnverifiedUsers.findAll({ order: [['id', 'ASC']] });
+
+      let allUsers = [
+        ...verified.map(u => ({ ...u.get({ plain: true }), verified: true, source: 'users' })),
+        ...unverified.map(u => ({ ...u.get({ plain: true }), verified: false, source: 'users' })),
+        ...pending.map(u => ({ ...u.get({ plain: true }), verified: false, source: 'unverified' }))
+      ];
+      total = allUsers.length;
+      users = allUsers.slice(offset, offset + limit);
+    }
+
+    const totalPages = Math.ceil(total / limit);
 
     res.render('users', {
-      verifiedUsers,
-      unverifiedUsers: allUnverified,
+      users,
+      page,
+      totalPages,
+      total,
+      filter,
+      limit,
       activePage: 'users'
     });
   } catch (err) {
     res.status(500).send('Error loading users');
   }
 };
+
 
 // Render add user form
 export const renderAddUser = (req, res) => {

@@ -57,33 +57,32 @@ const Orders = () => {
     setLoading(false);
   };
 
-  // Place order after successful Stripe payment
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get("success") === "true") {
-      const placeOrder = async () => {
-        try {
-          const token = localStorage.getItem("token");
-          await axios.post(
-            "http://localhost:3000/api/orders/place",
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          setOrderPlaced(true);
-        } catch (err) {
-          setError("Failed to place order after payment.");
-        }
-        // Always fetch orders to update UI
-        await fetchOrders();
-        // Remove the query param from the URL
-        navigate("/orders", { replace: true });
-      };
-      placeOrder();
-    } else {
-      fetchOrders();
-    }
-    // eslint-disable-next-line
-  }, [location.search]);
+  const params = new URLSearchParams(location.search);
+  if (params.get("success") === "true") {
+    const placeOrder = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const sessionId = localStorage.getItem("stripe_session_id");
+        await axios.post(
+          "http://localhost:3000/api/orders/place",
+          { sessionId }, // <-- Send sessionId in the request body
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        localStorage.removeItem('stripe_session_id'); // <-- Clean up
+        setOrderPlaced(true);
+      } catch (err) {
+        setError("Failed to place order after payment.");
+      }
+      await fetchOrders();
+      navigate("/orders", { replace: true });
+    };
+    placeOrder();
+  } else {
+    fetchOrders();
+  }
+}, [location.search]);
+
 
   if (loading)
     return (
@@ -226,71 +225,124 @@ const Orders = () => {
         ) : (
           <div className="space-y-8">
             {orders.map((order) => (
-              <div key={order.id} className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <div className="text-lg font-semibold text-gray-800">Order #{order.id}</div>
-                    <div className="text-gray-500 text-sm">
-                      Placed on {new Date(order.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-xl text-blue-700">
-                      ${order.total?.toFixed(2)}
-                    </div>
-                    <div className="text-sm text-green-600 font-semibold capitalize">
-                      {order.status || "Completed"}
-                    </div>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-100">
-                      {(order.orderItems || []).map((item) => (
-                        <tr key={item.id}>
-                          <td className="px-4 py-3">
-  <Link
-    to={`/products/${item.productId}`}
-    className="flex items-center space-x-3 group transition-transform duration-200"
-    style={{ textDecoration: "none" }}
-  >
-    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:scale-105 transition-all duration-200">
-      {item.product?.image ? (
-        <img
-          src={`http://localhost:3000/uploads/${item.product.image}`}
-          alt={item.product?.name || "Product"}
-          className="object-cover w-full h-full"
-        />
-      ) : (
-        <span className="text-2xl">📦</span>
-      )}
+  <div key={order.id} className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+    <div className="flex justify-between items-center mb-6">
+      <div>
+        <div className="text-lg font-semibold text-gray-800">Order #{order.id}</div>
+        <div className="text-gray-500 text-sm">
+          Placed on {new Date(order.createdAt).toLocaleString()}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="font-bold text-xl text-blue-700">
+          ${order.total?.toFixed(2) || '0.00'}
+        </div>
+        <div className="text-sm text-green-600 font-semibold capitalize">
+          {order.status || "Completed"}
+        </div>
+      </div>
     </div>
-    <span className="font-medium text-gray-800 group-hover:text-purple-600 transition-colors duration-200">
-      {item.product?.name || "Product"}
-    </span>
-  </Link>
-</td>
 
-                          <td className="px-4 py-3">{item.quantity}</td>
-                          <td className="px-4 py-3">${item.price?.toFixed(2)}</td>
-                          <td className="px-4 py-3 font-semibold">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+    {/* Payment and Billing Information Section */}
+    {(order.paymentIntentId || order.billingAddress || order.receiptUrl) && (
+      <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <h4 className="text-md font-semibold text-gray-700 mb-3">Payment & Billing Details</h4>
+        
+        {order.paymentIntentId && (
+          <div className="mb-3">
+            <span className="text-sm font-medium text-gray-600">Payment Intent: </span>
+            <span className="text-sm text-gray-800 font-mono bg-white px-2 py-1 rounded border">
+              {order.paymentIntentId}
+            </span>
+          </div>
+        )}
+
+        {order.billingAddress && (
+          <div className="mb-3">
+            <h5 className="text-sm font-medium text-gray-600 mb-2">Billing Address</h5>
+            <div className="text-sm text-gray-700 bg-white p-3 rounded border space-y-1">
+              <div>{order.billingAddress.line1 || ''}</div>
+              {order.billingAddress.line2 && <div>{order.billingAddress.line2}</div>}
+              <div>
+                {order.billingAddress.city || ''}
+                {order.billingAddress.city && order.billingAddress.state && ', '}
+                {order.billingAddress.state || ''}
               </div>
-            ))}
+              <div>
+                {order.billingAddress.postal_code || ''}
+                {order.billingAddress.postal_code && order.billingAddress.country && ' '}
+                {order.billingAddress.country || ''}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {order.receiptUrl && (
+          <div>
+            <a 
+              href={order.receiptUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-sm hover:shadow-md"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              View Payment Receipt
+            </a>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* Order Items Table */}
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead>
+          <tr>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-100">
+          {(order.orderItems || []).map((item) => (
+            <tr key={item.id}>
+              <td className="px-4 py-3">
+                <Link
+                  to={`/products/${item.productId}`}
+                  className="flex items-center space-x-3 group transition-transform duration-200"
+                  style={{ textDecoration: "none" }}
+                >
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:scale-105 transition-all duration-200">
+                    {item.product?.image ? (
+                      <img
+                        src={item.product.image.startsWith('http') ? item.product.image : `http://localhost:3000/uploads/${item.product.image}`}
+                        alt={item.product?.name || "Product"}
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <span className="text-2xl">📦</span>
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-800 group-hover:text-purple-600 transition-colors duration-200">
+                    {item.product?.name || "Product"}
+                  </span>
+                </Link>
+              </td>
+              <td className="px-4 py-3 text-gray-700">{item.quantity}</td>
+              <td className="px-4 py-3 text-gray-700">${item.price?.toFixed(2)}</td>
+              <td className="px-4 py-3 font-semibold text-gray-800">
+                ${(item.price * item.quantity).toFixed(2)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+))}
           </div>
         )}
       </div>

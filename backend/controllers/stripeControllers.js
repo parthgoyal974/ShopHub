@@ -27,12 +27,16 @@ export const createStripeSession = async (req, res) => {
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-  success_url: `${process.env.BASE_URL}/orders?success=true`,
-  cancel_url: `${process.env.BASE_URL}/cart`,
+      success_url: `${process.env.BASE_URL}/orders?success=true`,
+      cancel_url: `${process.env.BASE_URL}/cart`,
       customer_email: req.userEmail,
+      billing_address_collection: 'required', // Require billing address
     });
 
-    res.json({ url: session.url });
+    res.json({ 
+      url: session.url,
+      sessionId: session.id // Return session ID for reference
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Stripe session creation failed' });

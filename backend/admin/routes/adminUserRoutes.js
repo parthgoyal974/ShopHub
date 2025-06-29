@@ -16,7 +16,7 @@ router.get('/add', renderAddUser);
 router.post('/add', handleAddUser);
 router.get('/edit/:id', renderEditUser);
 router.put('/edit/:id', handleEditUser);
-router.post('/edit/:id', handleEditUser); // fallback for method-override
+router.post('/edit/:id', handleEditUser);
 router.post('/activate', handleActivateUser);
 router.post('/deactivate', handleDeactivateUser);
 

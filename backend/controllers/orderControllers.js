@@ -15,10 +15,11 @@ export const fetchOrdersByUserHandler = async (req, res) => {
 // Place an order for the authenticated user (from their cart)
 export const placeOrderHandler = async (req, res) => {
   try {
-    const order = await placeOrderForUser(req.userId);
+    const { sessionId } = req.body; // Get session ID from frontend
+    const order = await placeOrderForUser(req.userId, sessionId);
     res.status(201).json(order);
   } catch (err) {
-    const status = err.message === "Cart is empty" || err.message === "Cart not found" ? 400 : 500;
+    const status = err.message === "Cart is empty" ? 400 : 500;
     res.status(status).json({ message: err.message });
   }
 };

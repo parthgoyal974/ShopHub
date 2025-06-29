@@ -14,24 +14,29 @@ const Cart = () => {
   const [error, setError] = useState("")
   const [username, setUsername] = useState("")
   const [showOrderAlert, setShowOrderAlert] = useState(false);
-  const handleCheckout = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
+const handleCheckout = async () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+  try {
+    const res = await axios.post(
+      "http://localhost:3000/api/stripe/create-session",
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    // Store session ID for order placement after payment
+    if (res.data.sessionId) {
+      localStorage.setItem('stripe_session_id', res.data.sessionId);
     }
-    try {
-      const res = await axios.post(
-        "http://localhost:3000/api/stripe/create-session",
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      window.location.href = res.data.url;
-    } catch (err) {
-      console.log(err)
-      setError("Failed to initiate checkout.");
-    }
-  };
+    window.location.href = res.data.url;
+  } catch (err) {
+    console.log(err);
+    setError("Failed to initiate checkout.");
+  }
+};
+
 
   const handleEmptyCart = async () => {
       for (const item of cartItems) {
