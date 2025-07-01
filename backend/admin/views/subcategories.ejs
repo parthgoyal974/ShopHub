@@ -13,7 +13,7 @@
   <tbody>
     <% subcategories.forEach((sub, idx) => { %>
       <tr>
-        <td><%= idx + 1 %></td>
+        <td><%= (pagination.page - 1) * 4 + idx + 1 %></td>
         <td><%= sub.name %></td>
         <td><%= sub.category ? sub.category.name : '-' %></td>
         <td>
@@ -26,4 +26,24 @@
     <% }) %>
   </tbody>
 </table>
+
+<!-- Pagination Controls: right-aligned -->
+<% if (pagination.totalPages > 1) { %>
+<nav aria-label="Page navigation">
+  <ul class="pagination justify-content-end">
+    <li class="page-item <%= pagination.page <= 1 ? 'disabled' : '' %>">
+      <a class="page-link" href="?page=<%= pagination.page - 1 %>">Previous</a>
+    </li>
+    <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+      <li class="page-item <%= pagination.page === i ? 'active' : '' %>">
+        <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+      </li>
+    <% } %>
+    <li class="page-item <%= pagination.page >= pagination.totalPages ? 'disabled' : '' %>">
+      <a class="page-link" href="?page=<%= pagination.page + 1 %>">Next</a>
+    </li>
+  </ul>
+</nav>
+<% } %>
+
 <%- include('partials/footer') %>

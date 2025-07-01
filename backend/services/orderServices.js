@@ -88,14 +88,16 @@ export const placeOrderForUser = async (userId, sessionId = null) => {
           if (session.customer_details?.address) {
             order.billingAddress = session.customer_details.address;
           }
-
           // Store receipt URL if available - with proper null checks
-          if (
-            session.payment_intent?.charges?.data?.length > 0 &&
-            session.payment_intent.charges.data[0].receipt_url
-          ) {
-            order.receiptUrl = session.payment_intent.charges.data[0].receipt_url;
-          }
+const session1 = await stripe.checkout.sessions.retrieve(sessionId, {
+  expand: ['payment_intent.charges'],
+});
+let receiptUrl = null;
+
+const charge = await stripe.charges.retrieve(session1.payment_intent.latest_charge);
+order.receiptUrl = charge.receipt_url;
+
+
 
           await order.save({ transaction: t });
         } catch (stripeError) {

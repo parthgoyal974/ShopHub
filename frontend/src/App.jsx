@@ -7,6 +7,7 @@ import CategoriesPage from './pages/Categories'
 import ProductsPage from './pages/Products'
 import ProductDetails from './pages/ProductDetails'
 import Orders from './pages/orders'
+import Contact from './pages/Contact'
 function App() {
 
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path='/products' element={<ProductsPage/>}></Route>
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="orders" element={<Orders/>}/>
+        <Route path="/contact" element={<Contact/>}></Route>
       </Routes>
     </BrowserRouter>
   )

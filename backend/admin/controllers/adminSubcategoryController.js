@@ -2,14 +2,34 @@ import Subcategory from '../../models/subCategory.js';
 import { getAllCategories } from '../../services/categoryServices.js';
 
 // List all subcategories
+import Category from '../../models/category.js';
+
 export const renderSubcategoryList = async (req, res) => {
   try {
-    const subcategories = await Subcategory.findAll({ include: ['category'] });
-    res.render('subcategories', { subcategories, activePage: 'subcategories' });
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = 4;
+    const offset = (page - 1) * limit;
+
+    // Include parent category for display
+    const { count, rows: subcategories } = await Subcategory.findAndCountAll({
+      include: [{ model: Category }],
+      limit,
+      offset,
+      order: [['id', 'ASC']]
+    });
+
+    const totalPages = Math.ceil(count / limit);
+
+    res.render('subcategories', {
+      subcategories,
+      pagination: { page, totalPages },
+      activePage: 'subcategories'
+    });
   } catch (err) {
     res.status(500).send('Error loading subcategories');
   }
 };
+
 
 // Render add subcategory form
 export const renderAddSubcategory = async (req, res) => {

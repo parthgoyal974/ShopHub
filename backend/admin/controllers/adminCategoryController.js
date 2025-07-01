@@ -2,10 +2,26 @@ import { getAllCategories, createCategory } from '../../services/categoryService
 import Category from '../../models/category.js';
 
 // List all categories
+
 export const renderCategoryList = async (req, res) => {
   try {
-    const categories = await getAllCategories();
-    res.render('categories', { categories, activePage: 'categories' });
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = 4;
+    const offset = (page - 1) * limit;
+
+    const { count, rows: categories } = await Category.findAndCountAll({
+      limit,
+      offset,
+      order: [['id', 'ASC']]
+    });
+
+    const totalPages = Math.ceil(count / limit);
+
+    res.render('categories', {
+      categories,
+      pagination: { page, totalPages },
+      activePage: 'categories'
+    });
   } catch (err) {
     res.status(500).send('Error loading categories');
   }

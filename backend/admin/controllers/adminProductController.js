@@ -8,20 +8,40 @@ import {
 } from '../../services/productServices.js';
 import { getAllCategories } from '../../services/categoryServices.js';
 import { getSubcategoriesByParent } from '../../services/subcategoryServices.js';
+import Product from '../../models/product.js';
+import Category from '../../models/category.js';
+import Subcategory from '../../models/subCategory.js';
+import { Op } from 'sequelize';
 
 // List products with optional filters
 export const renderProductList = async (req, res) => {
   try {
-    const { category, subcategory, search } = req.query;
-    let products;
+    const { category, subcategory, search, page = 1 } = req.query;
+    const limit = 4; // number of products per page
+    const offset = (page - 1) * limit;
 
+    // Build where clause based on filters
+    const where = {};
     if (search) {
-      products = await searchProducts(search);
-    } else if (category) {
-      products = await getProductsByCategoryAndSubcategory(category, subcategory);
-    } else {
-      products = await getAllProducts();
+      where[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { description: { [Op.like]: `%${search}%` } }
+      ];
     }
+    if (category) where.categoryId = category;
+    if (subcategory) where.subcategoryId = subcategory;
+
+    // Query products with pagination and includes
+    const { count, rows: products } = await Product.findAndCountAll({
+      where,
+      include: [
+        { model: Category, as: 'category' },
+        { model: Subcategory, as: 'subcategory' }
+      ],
+      limit,
+      offset,
+      order: [['id', 'ASC']]
+    });
 
     const categories = await getAllCategories();
     let subcategories = [];
@@ -29,14 +49,18 @@ export const renderProductList = async (req, res) => {
       subcategories = await getSubcategoriesByParent(category);
     }
 
+    const totalPages = Math.ceil(count / limit);
+
     res.render('products', {
       products,
       categories,
       subcategories,
       filters: { category, subcategory, search },
+      pagination: { page: Number(page), totalPages },
       activePage: 'products'
     });
   } catch (err) {
+    console.log(err)
     res.status(500).send('Error loading products');
   }
 };
