@@ -8,7 +8,9 @@ import Cart from '../models/cart.js';
 import CartItem from '../models/cartItem.js';
 import sequelize from '../lib/db.js';
 import Stripe from 'stripe';
-
+import nodemailer from 'nodemailer';
+import Users from '../models/users.js';
+import dotenv from 'dotenv';
 // Fetch all orders for a user, including items and product details
 export const getOrdersByUser = async (userId) => {
   return await Order.findAll({
@@ -22,7 +24,49 @@ export const getOrdersByUser = async (userId) => {
     order: [['createdAt', 'DESC']]
   });
 };
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST, 
+  port: process.env.EMAIL_PORT || 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+// mailer.js or similar
+export const sendBillingEmail = async ({ user, order, orderItems, receiptUrl }) => {
+  const itemsList = orderItems.map(item =>
+    `<li>${item.product.name} x ${item.quantity} @ ₹${item.price} each = ₹${item.price * item.quantity}</li>`
+  ).join('');
 
+  const billingAddress = order.billingAddress
+    ? `
+      <p><strong>Billing Address:</strong><br>
+      ${order.billingAddress.line1 || ''}<br>
+      ${order.billingAddress.line2 || ''}<br>
+      ${order.billingAddress.city || ''}, ${order.billingAddress.state || ''} ${order.billingAddress.postal_code || ''}<br>
+      ${order.billingAddress.country || ''}
+      </p>
+    `
+    : '';
+
+  const html = `
+    <h2>Thank you for your order!</h2>
+    <p>Order ID: <strong>${order.id}</strong></p>
+    <ul>${itemsList}</ul>
+    <p><strong>Total Paid:</strong> ₹${order.total}</p>
+    ${billingAddress}
+    ${receiptUrl ? `<p><a href="${receiptUrl}">View Payment Receipt</a></p>` : ''}
+    <p>If you have any questions, reply to this email.</p>
+  `;
+
+  await transporter.sendMail({
+    from: `"Your App" <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: `Order Confirmation - Order #${order.id}`,
+    html
+  });
+};
 
 
 
@@ -110,10 +154,30 @@ order.receiptUrl = charge.receipt_url;
       await CartItem.destroy({ where: { cartId: cart.id }, transaction: t });
 
       // Return order with items and product details
-      return await Order.findByPk(order.id, {
+      const fullOrder = await Order.findByPk(order.id, {
         include: [{ model: OrderItem, include: [Product] }],
         transaction: t,
       });
+
+      // Fetch user
+      const user = await Users.findByPk(userId, { transaction: t });
+      console.log("HEYYYYYYY")
+      console.log(fullOrder.toJSON());
+
+      // Send billing email
+      try {
+        await sendBillingEmail({
+          user,
+          order: fullOrder,
+          orderItems: fullOrder.orderItems,
+          receiptUrl:order.receiptUrl
+        });
+      } catch (mailError) {
+        console.error('Failed to send billing email:', mailError);
+        // Optionally: throw or continue
+      }
+
+      return fullOrder;
+      });
     }
-  );
-};
+

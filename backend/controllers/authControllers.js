@@ -3,7 +3,9 @@ import {
   loginUser,
   getAuthenticatedUser,
   sendVerificationOTP,
-  verifyOTP
+  verifyOTP,
+  sendPasswordResetOTP,
+  verifyPasswordResetOTPAndChangePassword
 } from '../services/authServices.js';
 
 // Register user (no JWT yet, only after verification)
@@ -76,11 +78,50 @@ const home = async (req, res) => {
   }
 };
 
+// ========================
+// Forgot Password Feature
+// ========================
+
+// 1. Send OTP for password reset
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    await sendPasswordResetOTP(email);
+    res.status(200).json({ message: "Password reset OTP sent successfully." });
+  } catch (err) {
+    if (err.message === 'Failed to send OTP email') {
+      res.status(503).json({ message: 'Could not send OTP email. Please try again later.' });
+    } else if (err.message.includes('not found')) {
+      res.status(404).json({ message: err.message });
+    } else if (err.message.includes('verified')) {
+      res.status(400).json({ message: err.message });
+    } else {
+      res.status(400).json({ message: err.message });
+    }
+  }
+};
+
+// 2. Verify OTP and reset password
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    await verifyPasswordResetOTPAndChangePassword(email, otp, newPassword);
+    res.status(200).json({ message: "Password has been reset successfully." });
+  } catch (err) {
+    let status = 400;
+    if (err.message === 'Invalid OTP') status = 401;
+    else if (err.message === 'OTP expired') status = 410;
+    else if (err.message === 'OTP not found') status = 404;
+    res.status(status).json({ message: err.message });
+  }
+};
 
 export {
   userRegister,
   userLogin,
   sendOTP,
   verifyOTPController,
-  home
+  home,
+  forgotPassword,
+  resetPassword
 };
