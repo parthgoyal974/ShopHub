@@ -178,9 +178,7 @@ const CategoriesPage = () => {
               </Link>
               <span className="text-blue-600 font-bold">Categories</span>
 <Link to="/orders" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Orders</Link>
-              <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
-                Contact
-              </a>
+              <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Contact</Link>
             </nav>
             <div className="flex items-center space-x-4">
               {username ? (
