@@ -23,7 +23,7 @@ npm install
 
 ---
 
-## 📁 Environment Setup
+##  Environment Setup
 
 Create a `.env` file in the `backend/` directory with the following contents:
 
@@ -49,11 +49,11 @@ ADMIN_SESSION_SECRET=admin_session_secret
 ADMIN_PASSKEY=admin_secure_passkey
 ```
 
-> 🚫 **Important:** Do **not** commit your `.env` to version control. Add `.env` to your `.gitignore`.
+>  **Important:** Do **not** commit your `.env` to version control. Add `.env` to your `.gitignore`.
 
 ---
 
-## ⚙️ Sequelize DB Configuration
+##  Sequelize DB Configuration
 
 Create `backend/config/config.json` with the following:
 
@@ -85,7 +85,7 @@ Create `backend/config/config.json` with the following:
 
 ---
 
-## 💾 Importing the Database
+##  Importing the Database
 
 The SQL dump file (`Dump20250722.sql`) sets up the entire database schema along with seed data.
 
@@ -108,7 +108,7 @@ mysql -u your_mysql_user -p < Dump20250722.sql
 
 ---
 
-## 💸 Stripe Secret Key Setup
+##  Stripe Secret Key Setup
 
 1. Go to https://dashboard.stripe.com and log in or create an account.
 2. Navigate to **Developers > API keys**.
@@ -119,11 +119,11 @@ mysql -u your_mysql_user -p < Dump20250722.sql
 STRIPE_SECRET_KEY=sk_test_YourStripeSecretKey
 ```
 
-> 💡 Use Stripe’s test keys for development. Create webhooks, test payments, and simulate success and failure scenarios.
+>  Use Stripe’s test keys for development. Create webhooks, test payments, and simulate success and failure scenarios.
 
 ---
 
-## ✉️ Gmail SMTP Setup
+##  Gmail SMTP Setup
 
 To enable email services (like OTPs, order confirmation):
 
@@ -138,11 +138,11 @@ EMAIL_PASS=your_generated_app_password
 EMAIL_FROM=your_email@gmail.com
 ```
 
-> 🔐 The app password replaces your regular email password for programmatic access.
+>  The app password replaces your regular email password for programmatic access.
 
 ---
 
-## 🚀 Run the Development Server
+##  Run the Development Server
 
 ```
 npm run dev
@@ -152,7 +152,7 @@ The app will run at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📂 Project Overview
+##  Project Overview
 
 ```
 backend/
@@ -169,7 +169,7 @@ backend/
 
 ---
 
-## 🔐 Security Practices
+##  Security Practices
 
 - Sensitive credentials stay in `.env`
 - Passwords use bcrypt hashing
@@ -179,7 +179,7 @@ backend/
 
 ---
 
-## ✅ To-Do Before Deployment
+##  To-Do Before Deployment
 
 - Secure `.env` and `.sql` files
 - Configure environment variables for production (use `.env.production`)
